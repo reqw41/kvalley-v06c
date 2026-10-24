@@ -1,0 +1,164 @@
+{
+ "streams_bytes": 861,
+ "streams": [
+  {
+   "name": "vsn_2",
+   "bytes": 1,
+   "comment": "удар о пол (A=0x2), голос 3"
+  },
+  {
+   "name": "vsn_3",
+   "bytes": 17,
+   "comment": "вращающаяся дверь (A=0x3), голос 3"
+  },
+  {
+   "name": "vsn_4",
+   "bytes": 8,
+   "comment": "взятие предмета (A=0x4), голос 3"
+  },
+  {
+   "name": "vsn_6",
+   "bytes": 12,
+   "comment": "бросок ножа (A=0x6), голос 3"
+  },
+  {
+   "name": "vsn_8",
+   "bytes": 13,
+   "comment": "мумия взорвана (A=0x8), голос 3"
+  },
+  {
+   "name": "vsn_9",
+   "bytes": 15,
+   "comment": "взятие гема (A=0x9), голос 3"
+  },
+  {
+   "name": "vsn_29_1",
+   "bytes": 11,
+   "comment": "смерть героя (A=0x1D), голос 1"
+  },
+  {
+   "name": "vsn_29_2",
+   "bytes": 11,
+   "comment": "смерть героя (A=0x1D), голос 2"
+  },
+  {
+   "name": "vsn_29_3",
+   "bytes": 12,
+   "comment": "смерть героя (A=0x1D), голос 3"
+  },
+  {
+   "name": "vsn_5",
+   "bytes": 7,
+   "comment": "кирка (A=0x45), голос 3"
+  },
+  {
+   "name": "vsn_7",
+   "bytes": 75,
+   "comment": "появление мумии (A=0x87), голос 3"
+  },
+  {
+   "name": "vsn_10",
+   "bytes": 11,
+   "comment": "доп. жизнь (A=0x8A), голос 3"
+  },
+  {
+   "name": "vsn_11_1",
+   "bytes": 104,
+   "comment": "музыка игры (A=0x8B), голос 1"
+  },
+  {
+   "name": "vsn_11_2",
+   "bytes": 118,
+   "comment": "музыка игры (A=0x8B), голос 2"
+  },
+  {
+   "name": "vsn_13_1",
+   "bytes": 16,
+   "comment": "дверь закрывается (A=0x8D), голос 1"
+  },
+  {
+   "name": "vsn_13_2",
+   "bytes": 16,
+   "comment": "дверь закрывается (A=0x8D), голос 2"
+  },
+  {
+   "name": "vsn_15_1",
+   "bytes": 8,
+   "comment": "колокольчик выхода (A=0x8F), голос 1"
+  },
+  {
+   "name": "vsn_15_2",
+   "bytes": 8,
+   "comment": "колокольчик выхода (A=0x8F), голос 2"
+  },
+  {
+   "name": "vsn_17_1",
+   "bytes": 24,
+   "comment": "фанфары карты (A=0x91), голос 1"
+  },
+  {
+   "name": "vsn_17_2",
+   "bytes": 24,
+   "comment": "фанфары карты (A=0x91), голос 2"
+  },
+  {
+   "name": "vsn_17_3",
+   "bytes": 23,
+   "comment": "фанфары карты (A=0x91), голос 3"
+  },
+  {
+   "name": "vsn_20_1",
+   "bytes": 38,
+   "comment": "stage clear (A=0x94), голос 1"
+  },
+  {
+   "name": "vsn_20_2",
+   "bytes": 38,
+   "comment": "stage clear (A=0x94), голос 2"
+  },
+  {
+   "name": "vsn_20_3",
+   "bytes": 38,
+   "comment": "stage clear (A=0x94), голос 3"
+  },
+  {
+   "name": "vsn_23_1",
+   "bytes": 33,
+   "comment": "старт игры (A=0x97), голос 1"
+  },
+  {
+   "name": "vsn_23_2",
+   "bytes": 33,
+   "comment": "старт игры (A=0x97), голос 2"
+  },
+  {
+   "name": "vsn_23_3",
+   "bytes": 40,
+   "comment": "старт игры (A=0x97), голос 3"
+  },
+  {
+   "name": "vsn_26_1",
+   "bytes": 31,
+   "comment": "game over (A=0x9A), голос 1"
+  },
+  {
+   "name": "vsn_26_2",
+   "bytes": 31,
+   "comment": "game over (A=0x9A), голос 2"
+  },
+  {
+   "name": "vsn_26_3",
+   "bytes": 41,
+   "comment": "game over (A=0x9A), голос 3"
+  },
+  {
+   "name": "vsn_fall",
+   "bytes": 4,
+   "comment": "падение (id 1): делитель растёт на 108 за тик"
+  }
+ ],
+ "dividers": 89,
+ "table_bytes": 68,
+ "divs_bytes": 178,
+ "checked_ticks": 16320
+}

@@ -1,0 +1,5 @@
+RTDEST: equ 00007800h
+RTSIZE: equ 000000F6h
+entry: equ 0000DB00h
+copy: equ 0000DB0Dh
+rtsrc: equ 0000DBB2h

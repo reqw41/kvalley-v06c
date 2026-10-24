@@ -1,0 +1,9 @@
+{
+  "old_sha256": "35340a2fad9b1bd75336d30752cd92a960a6793a48e173a791217b46dc0d9296",
+  "new_sha256": "14418b60d622ee2e9b6d732a55d7c6a8ce0bc747917e833dfa6aa842d4dc4b09",
+  "other_bytes_identical": true,
+  "paths": [
+    "scenes.stress.baseline.build",
+    "scenes.natural.baseline.build"
+  ]
+}

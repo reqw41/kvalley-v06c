@@ -1,0 +1,18 @@
+measuring stress 120
+stress closure {
+  max_raster_absolute_cycles: 0,
+  max_raster_relative_pct: 0,
+  max_absolute_cycles: 0,
+  max_relative_pct: 0,
+  total_instruction_cycles: 13367464
+} tick 103772 packs 46100
+measuring natural 2600
+natural closure {
+  max_raster_absolute_cycles: 0,
+  max_raster_relative_pct: 0,
+  max_absolute_cycles: 0,
+  max_relative_pct: 0,
+  total_instruction_cycles: 141055552
+} tick 6452 packs 22680
+checking exact stress reproducibility
+saved results.json

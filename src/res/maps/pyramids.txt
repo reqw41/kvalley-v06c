@@ -1,0 +1,873 @@
+# Карты пирамид King's Valley — ИСХОДНИК (редактируемый текст).
+# Компилируется tools/maps_compile.py в src/res/res_maps.asm (вызывается build.sh).
+#
+# ПОЛУЭКРАН (HALF) = половина комнаты: 22 ряда x 16 клеток; '#'=кирпич, '.'=пусто.
+# Комната = 2 полуэкрана (лево+право), пирамида = 1-2 комнаты (2-4 полуэкрана).
+# Полуэкраны ОБЩИЕ между пирамидами (правка одного меняет все, где он используется).
+# Группы = позиция слева направо: A=левый край, B,C=середина, D=ПРАВЫЙ/последний.
+# ИНВАРИАНТ ДВИЖКА: последний полуэкран пирамиды обязан быть из группы D
+# (его дескриптор служит терминатором списка), остальные — не из D.
+
+HALF A0
+##..............
+#...............
+#...............
+#......#########
+########........
+#...............
+#...............
+##########......
+#...............
+#...............
+#...............
+#..#############
+#...............
+#...............
+#...............
+#...............
+#...########....
+#.............##
+#...............
+####............
+######..........
+################
+
+HALF A1
+##..............
+#...............
+#...............
+################
+##..............
+##..............
+##......########
+#####...########
+#...........####
+#...........####
+#.......####...#
+#.......####...#
+#...........####
+#...........####
+#.......########
+#.......########
+#.......#####...
+######..#####...
+#.......########
+#...............
+#...............
+#...............
+
+HALF A2
+##..............
+#...............
+#...............
+#############...
+#...............
+#...............
+######..........
+#...............
+#.......########
+#.......########
+################
+#.......########
+#.......####....
+#.......####....
+################
+#...............
+#...............
+#...............
+################
+#...............
+#...............
+#...............
+
+HALF A3
+##..............
+#...............
+#...............
+################
+##..............
+##..............
+##..............
+############....
+#...............
+#...............
+####............
+#...............
+#...............
+#...............
+################
+#########.......
+#.......#.......
+#.......#.......
+#..###..########
+#...............
+#...............
+####............
+
+HALF B0
+................
+................
+................
+##########......
+................
+............####
+#######.........
+##..............
+##..............
+################
+................
+................
+................
+................
+############....
+................
+................
+....############
+................
+................
+................
+....############
+
+HALF B1
+................
+................
+................
+########........
+......####......
+......##########
+........#.......
+........#.......
+####....#.......
+####....########
+####............
+####............
+####............
+####..######....
+####............
+................
+................
+...........#####
+#########.......
+................
+................
+.......#########
+
+HALF B2
+................
+................
+................
+................
+................
+......##########
+######..........
+######..........
+######..........
+######..########
+........######..
+........######..
+######..######..
+######..######..
+######..........
+######..........
+................
+.........#######
+##########......
+................
+................
+............####
+
+HALF C0
+................
+................
+................
+................
+................
+##############..
+................
+................
+................
+################
+................
+................
+..####......####
+..........######
+........########
+......######...#
+....########...#
+################
+................
+................
+................
+################
+
+HALF C1
+................
+................
+................
+............####
+........####....
+########........
+................
+...........#####
+.......######...
+#############...
+....############
+....##..........
+....##..........
+....##..........
+....############
+......##########
+..............##
+####..........##
+......######....
+................
+................
+################
+
+HALF C2
+................
+................
+................
+.......#########
+.......#........
+########........
+...........#####
+................
+................
+####............
+......##########
+................
+................
+................
+.....###########
+................
+................
+######..........
+........########
+................
+................
+#############...
+
+HALF D0
+..............##
+...............#
+...............#
+...............#
+.....###########
+...............#
+...............#
+...............#
+...............#
+################
+...............#
+...............#
+...............#
+...............#
+...............#
+...............#
+...............#
+################
+...............#
+...............#
+...............#
+################
+
+HALF D1
+..............##
+...............#
+...............#
+################
+...............#
+...............#
+############...#
+...............#
+...............#
+...............#
+################
+...............#
+...............#
+...............#
+...............#
+...............#
+..##############
+...............#
+...............#
+...............#
+...............#
+################
+
+HALF D2
+..............##
+...............#
+...............#
+############...#
+..........#....#
+..........#....#
+#############..#
+...........#...#
+...........#...#
+...........#...#
+############...#
+...........#...#
+...........#...#
+...........#...#
+############...#
+...........#...#
+...........#...#
+...........#...#
+#########..#...#
+...........#####
+...........#####
+...........#####
+
+HALF D3
+..............##
+...............#
+...............#
+#########......#
+........########
+...............#
+...............#
+......##########
+...............#
+...............#
+...............#
+#############..#
+...............#
+...............#
+...............#
+...............#
+....########...#
+##.............#
+...............#
+............####
+..........######
+################
+
+PYRAMID 1
+HALVES A0 D3
+DOOR -
+DOOR -
+DOOR -
+DOOR y=0x48 x=0x78 dest=2 dir=4
+MUMMY y=0x48 x=0x48 room=0 type=0
+MUMMY y=0x48 x=0xB0 room=0 type=2
+GEM color=7 y=0x18 x=0x18
+GEM color=3 y=0x18 x=0xE0 lo=1
+GEM color=4 y=0xA0 x=0x10 lo=2
+GEM color=5 y=0x78 x=0xD0 lo=4
+KNIFE y=0x80 x=0x78
+STAIR y=0x30 x=0x28 room=0 dir=R
+STAIR y=0x30 x=0xC8 room=0 dir=L
+STAIR y=0x50 x=0x28 room=0 dir=R
+STAIR y=0x50 x=0xC8 room=0 dir=L
+STAIR y=0x78 x=0x40 room=0 dir=L
+STAIR y=0x78 x=0xB0 room=0 dir=R
+STAIR y=0xA0 x=0x50 room=0 dir=R
+STAIR y=0xA0 x=0xA0 room=0 dir=L
+
+PYRAMID 2
+HALVES A0 B1 C1 D0
+DOOR -
+DOOR -
+DOOR y=0x70 x=0x30 dest=1 dir=8
+DOOR y=0x78 x=0xD1 dest=3 dir=4
+MUMMY y=0x18 x=0xD0 room=0 type=0
+MUMMY y=0x30 x=0x88 room=0 type=4
+MUMMY y=0x60 x=0x60 room=1 type=1
+GEM color=5 y=0x50 x=0x90 lo=5
+GEM color=7 y=0x60 x=0xB8 lo=7
+GEM color=8 y=0x18 x=0x49 lo=8
+GEM color=6 y=0x30 x=0x61 lo=9
+GEM color=4 y=0x68 x=0x51 lo=3
+KNIFE y=0x10 x=0x38
+KNIFE y=0xA0 x=0xC0
+KNIFE y=0x18 x=0xD1
+PICK y=0x10 x=0xB8
+PICK y=0x40 x=0x18
+PICK y=0x40 x=0xC8
+PICK y=0x80 x=0x70
+PICK y=0x90 x=0x08
+PICK y=0x48 x=0x69
+PICK y=0x90 x=0xD1
+ROTDOOR h=2 y=0x20 x=0x70 room=1 dir=2
+ROTDOOR h=2 y=0x28 x=0x40 room=1 dir=2
+TRAP y=0x78 x=0x79
+TRAP y=0x80 x=0x91
+STAIR y=0x30 x=0x40 room=0 dir=L
+STAIR y=0x50 x=0x30 room=0 dir=R
+STAIR y=0x60 x=0xD0 room=0 dir=L
+STAIR y=0x78 x=0x50 room=0 dir=L
+STAIR y=0x80 x=0xE0 room=0 dir=R
+STAIR y=0xA0 x=0x50 room=0 dir=R
+STAIR y=0xA8 x=0x90 room=0 dir=L
+STAIR y=0x40 x=0x10 room=1 dir=L
+STAIR y=0x40 x=0xD0 room=1 dir=R
+STAIR y=0x80 x=0x90 room=1 dir=L
+STAIR y=0xA0 x=0x20 room=1 dir=R
+STAIR y=0xA0 x=0x50 room=1 dir=R
+STAIR y=0xA0 x=0xB0 room=1 dir=L
+
+PYRAMID 3
+HALVES A3 D3
+DOOR -
+DOOR -
+DOOR y=0x60 x=0x28 dest=2 dir=8
+DOOR y=0x48 x=0xB0 dest=4 dir=1
+MUMMY y=0x08 x=0x90 room=0 type=0
+MUMMY y=0x60 x=0x10 room=0 type=2
+GEM color=3 y=0x18 x=0xD8 lo=4
+GEM color=4 y=0x50 x=0xE0 lo=7
+GEM color=7 y=0x48 x=0x10 lo=8
+GEM color=8 y=0x88 x=0x58 lo=6
+GEM color=7 y=0xA8 x=0x18 lo=5
+KNIFE y=0x30 x=0xB0
+KNIFE y=0x78 x=0xA0
+PICK y=0x10 x=0x08
+PICK y=0x20 x=0x10
+PICK y=0x58 x=0x08
+TRAP y=0x78 x=0x80
+STAIR y=0x30 x=0x18 room=0 dir=L
+STAIR y=0x30 x=0xC8 room=0 dir=L
+STAIR y=0x50 x=0x90 room=0 dir=R
+STAIR y=0x50 x=0xC8 room=0 dir=L
+STAIR y=0x68 x=0x50 room=0 dir=R
+STAIR y=0x78 x=0xC8 room=0 dir=R
+STAIR y=0xA0 x=0x88 room=0 dir=L
+
+PYRAMID 4
+HALVES A0 B0 C0 D0
+DOOR y=0x38 x=0x51 dest=3 dir=8
+DOOR -
+DOOR y=0x98 x=0xD8 dest=5 dir=8
+DOOR -
+MUMMY y=0x10 x=0x18 room=0 type=0
+MUMMY y=0x78 x=0xD8 room=1 type=1
+GEM color=3 y=0x30 x=0x10
+GEM color=5 y=0x80 x=0x78 lo=2
+GEM color=7 y=0x98 x=0x10 lo=7
+GEM color=4 y=0x18 x=0xE1 lo=8
+GEM color=6 y=0x78 x=0x51 lo=1
+GEM color=5 y=0x80 x=0x69 lo=3
+KNIFE y=0x68 x=0xB0
+KNIFE y=0x18 x=0xA9
+KNIFE y=0x80 x=0xB9
+PICK y=0x40 x=0x38
+PICK y=0x40 x=0x90
+PICK y=0x50 x=0x78
+PICK y=0x68 x=0x28
+PICK y=0x18 x=0xF1
+PICK y=0x58 x=0x29
+PICK y=0x70 x=0xB9
+PICK y=0x90 x=0x11
+PICK y=0x90 x=0xE9
+ROTDOOR h=0 y=0x28 x=0x20 room=0 dir=2
+STAIR y=0x28 x=0x98 room=0 dir=R
+STAIR y=0x30 x=0x40 room=0 dir=L
+STAIR y=0x40 x=0xD0 room=0 dir=L
+STAIR y=0x50 x=0x50 room=0 dir=R
+STAIR y=0x68 x=0x88 room=0 dir=L
+STAIR y=0x78 x=0x40 room=0 dir=R
+STAIR y=0x80 x=0xD0 room=0 dir=R
+STAIR y=0xA0 x=0x48 room=0 dir=R
+STAIR y=0xA8 x=0x88 room=0 dir=L
+STAIR y=0x40 x=0x18 room=1 dir=L
+STAIR y=0x40 x=0xA8 room=1 dir=L
+STAIR y=0x58 x=0x18 room=1 dir=L
+STAIR y=0x58 x=0x60 room=1 dir=R
+STAIR y=0x80 x=0x98 room=1 dir=L
+STAIR y=0xA0 x=0x28 room=1 dir=R
+STAIR y=0xA0 x=0xC8 room=1 dir=L
+
+PYRAMID 5
+HALVES A2 D0
+DOOR -
+DOOR -
+DOOR y=0xA0 x=0x68 dest=6 dir=8
+DOOR y=0x78 x=0xE0 dest=4 dir=4
+MUMMY y=0x10 x=0xB8 room=0 type=3
+MUMMY y=0x80 x=0x38 room=0 type=0
+GEM color=3 y=0x18 x=0xD8
+GEM color=8 y=0x50 x=0x48 lo=7
+GEM color=7 y=0x50 x=0x78 lo=9
+GEM color=4 y=0x68 x=0x70 lo=8
+KNIFE y=0xA0 x=0x80
+PICK y=0x18 x=0xF0
+PICK y=0x38 x=0x10
+PICK y=0x78 x=0x10
+PICK y=0x90 x=0xE8
+PICK y=0xA8 x=0x08
+TRAP y=0xA0 x=0x18
+STAIR y=0x28 x=0x18 room=0 dir=L
+STAIR y=0x40 x=0x98 room=0 dir=L
+STAIR y=0x48 x=0x28 room=0 dir=R
+STAIR y=0x68 x=0x28 room=0 dir=R
+STAIR y=0x80 x=0xA8 room=0 dir=L
+STAIR y=0x88 x=0x28 room=0 dir=R
+STAIR y=0x88 x=0x50 room=0 dir=L
+STAIR y=0xA0 x=0xA0 room=0 dir=R
+STAIR y=0xA0 x=0xC8 room=0 dir=L
+STAIR y=0xA8 x=0x30 room=0 dir=L
+
+PYRAMID 6
+HALVES A2 B1 C2 D2
+DOOR -
+DOOR -
+DOOR y=0x80 x=0x58 dest=7 dir=4
+DOOR y=0x80 x=0xA1 dest=5 dir=4
+MUMMY y=0x10 x=0xC0 room=0 type=2
+MUMMY y=0x78 x=0xE0 room=0 type=1
+MUMMY y=0x40 x=0x38 room=1 type=0
+GEM color=3 y=0x20 x=0xD8 lo=3
+GEM color=4 y=0x40 x=0xD8 lo=8
+GEM color=5 y=0x58 x=0x58 lo=6
+GEM color=7 y=0x68 x=0x68
+GEM color=6 y=0x28 x=0xE1 lo=4
+GEM color=7 y=0x48 x=0x91 lo=5
+KNIFE y=0xA8 x=0x08
+KNIFE y=0x68 x=0x29
+PICK y=0x10 x=0x08
+PICK y=0x38 x=0x08
+PICK y=0x58 x=0x08
+PICK y=0x60 x=0x78
+PICK y=0x78 x=0x30
+PICK y=0x98 x=0x40
+PICK y=0x58 x=0x39
+PICK y=0x68 x=0xC9
+PICK y=0x90 x=0xE1
+PICK y=0xA8 x=0xE1
+ROTDOOR h=2 y=0x58 x=0x78 room=1 dir=2
+TRAP y=0xA0 x=0x18
+TRAP y=0x80 x=0xA0
+STAIR y=0x28 x=0x18 room=0 dir=L
+STAIR y=0x38 x=0x60 room=0 dir=R
+STAIR y=0x38 x=0x70 room=0 dir=L
+STAIR y=0x48 x=0x28 room=0 dir=R
+STAIR y=0x60 x=0xC0 room=0 dir=L
+STAIR y=0x68 x=0x10 room=0 dir=L
+STAIR y=0x88 x=0x10 room=0 dir=L
+STAIR y=0xA0 x=0xC8 room=0 dir=L
+STAIR y=0xA8 x=0x58 room=0 dir=R
+STAIR y=0x28 x=0x68 room=1 dir=R
+STAIR y=0x48 x=0xA8 room=1 dir=L
+STAIR y=0x68 x=0x50 room=1 dir=R
+STAIR y=0x68 x=0xB0 room=1 dir=L
+STAIR y=0x88 x=0x58 room=1 dir=R
+STAIR y=0xA0 x=0x38 room=1 dir=L
+STAIR y=0xA8 x=0xA0 room=1 dir=R
+
+PYRAMID 7
+HALVES A3 D0
+DOOR -
+DOOR -
+DOOR y=0x60 x=0x48 dest=6 dir=4
+DOOR y=0x78 x=0xD0 dest=8 dir=4
+MUMMY y=0x10 x=0xA8 room=0 type=2
+MUMMY y=0x28 x=0x18 room=0 type=0
+GEM color=3 y=0x18 x=0xD8
+GEM color=4 y=0x30 x=0x48 lo=5
+GEM color=6 y=0x48 x=0x10 lo=9
+GEM color=5 y=0x88 x=0x20 lo=2
+GEM color=7 y=0x88 x=0x58 lo=1
+KNIFE y=0x10 x=0x70
+KNIFE y=0x80 x=0xE8
+PICK y=0x10 x=0x08
+PICK y=0x18 x=0xF0
+PICK y=0x58 x=0x30
+STAIR y=0x30 x=0x30 room=0 dir=L
+STAIR y=0x40 x=0xE0 room=0 dir=R
+STAIR y=0x68 x=0x10 room=0 dir=L
+STAIR y=0x68 x=0x68 room=0 dir=L
+STAIR y=0x80 x=0x90 room=0 dir=L
+STAIR y=0x88 x=0x68 room=0 dir=R
+STAIR y=0xA0 x=0xD8 room=0 dir=R
+STAIR y=0xA8 x=0x30 room=0 dir=L
+
+PYRAMID 8
+HALVES A0 B2 C2 D1
+DOOR -
+DOOR -
+DOOR y=0xA0 x=0x98 dest=7 dir=8
+DOOR y=0x98 x=0xD1 dest=9 dir=1
+MUMMY y=0x18 x=0xB0 room=0 type=4
+MUMMY y=0x98 x=0xE0 room=0 type=2
+MUMMY y=0x60 x=0x70 room=1 type=0
+GEM color=3 y=0x58 x=0xA0
+GEM color=4 y=0x80 x=0x70 lo=5
+GEM color=5 y=0x18 x=0x18 lo=7
+GEM color=7 y=0x40 x=0x11 lo=9
+GEM color=8 y=0x68 x=0x59 lo=3
+KNIFE y=0x10 x=0x70
+KNIFE y=0x78 x=0x58
+KNIFE y=0x48 x=0xB1
+KNIFE y=0x88 x=0x41
+PICK y=0x40 x=0x20
+PICK y=0x40 x=0xE0
+PICK y=0x68 x=0x28
+PICK y=0x20 x=0x31
+PICK y=0x38 x=0x69
+PICK y=0x38 x=0xB1
+PICK y=0x90 x=0xB1
+ROTDOOR h=2 y=0x58 x=0x30 room=1 dir=2
+TRAP y=0x48 x=0x50
+TRAP y=0x70 x=0xA1
+TRAP y=0x78 x=0x21
+STAIR y=0x30 x=0x10 room=0 dir=L
+STAIR y=0x50 x=0x38 room=0 dir=R
+STAIR y=0x78 x=0x40 room=0 dir=R
+STAIR y=0xA0 x=0x48 room=0 dir=R
+STAIR y=0xA8 x=0xC0 room=0 dir=L
+STAIR y=0x28 x=0xC8 room=1 dir=R
+STAIR y=0x48 x=0x48 room=1 dir=L
+STAIR y=0x48 x=0x90 room=1 dir=L
+STAIR y=0x78 x=0xE0 room=1 dir=R
+STAIR y=0xA0 x=0x28 room=1 dir=R
+STAIR y=0xA0 x=0x90 room=1 dir=L
+STAIR y=0xA8 x=0x68 room=1 dir=R
+
+PYRAMID 9
+HALVES A1 D2
+DOOR y=0x40 x=0xB8 dest=8 dir=8
+DOOR -
+DOOR y=0xA0 x=0x20 dest=10 dir=8
+DOOR -
+MUMMY y=0x20 x=0x90 room=0 type=2
+GEM color=6 y=0x48 x=0x50 lo=1
+GEM color=4 y=0x68 x=0x98 lo=2
+GEM color=5 y=0x80 x=0x18 lo=7
+GEM color=7 y=0x88 x=0x50 lo=4
+KNIFE y=0x30 x=0x18
+KNIFE y=0x88 x=0x88
+PICK y=0x10 x=0xD8
+PICK y=0x48 x=0xD0
+PICK y=0x58 x=0x68
+PICK y=0x58 x=0x70
+PICK y=0x58 x=0xA8
+PICK y=0x98 x=0x78
+STAIR y=0x28 x=0x58 room=0 dir=R
+STAIR y=0x28 x=0xB8 room=0 dir=R
+STAIR y=0x48 x=0x88 room=0 dir=L
+STAIR y=0x68 x=0xC0 room=0 dir=R
+STAIR y=0x88 x=0xA0 room=0 dir=R
+STAIR y=0xA8 x=0x58 room=0 dir=L
+STAIR y=0xA8 x=0xC0 room=0 dir=R
+
+PYRAMID 10
+HALVES A2 B2 C0 D1
+DOOR -
+DOOR -
+DOOR y=0xA0 x=0x70 dest=11 dir=8
+DOOR y=0x98 x=0xB1 dest=9 dir=4
+MUMMY y=0x78 x=0x90 room=0 type=3
+MUMMY y=0x18 x=0x48 room=1 type=3
+MUMMY y=0x98 x=0x90 room=1 type=4
+GEM color=4 y=0x40 x=0x88 lo=1
+GEM color=5 y=0x68 x=0x18 lo=3
+GEM color=3 y=0x68 x=0x68 lo=7
+GEM color=6 y=0x10 x=0xE1 lo=4
+GEM color=7 y=0x40 x=0x11 lo=5
+GEM color=8 y=0x58 x=0x71 lo=6
+KNIFE y=0xA8 x=0x08
+KNIFE y=0x48 x=0xE9
+KNIFE y=0x80 x=0x69
+PICK y=0x10 x=0x10
+PICK y=0x30 x=0xE8
+PICK y=0x58 x=0x08
+PICK y=0x78 x=0x28
+PICK y=0x30 x=0x31
+PICK y=0x38 x=0xB1
+TRAP y=0xA0 x=0x18
+TRAP y=0x38 x=0x21
+TRAP y=0x40 x=0xE1
+STAIR y=0x38 x=0x40 room=0 dir=R
+STAIR y=0x40 x=0xC8 room=0 dir=L
+STAIR y=0x48 x=0x20 room=0 dir=R
+STAIR y=0x88 x=0x40 room=0 dir=R
+STAIR y=0xA8 x=0x38 room=0 dir=R
+STAIR y=0xA8 x=0xC0 room=0 dir=L
+STAIR y=0x28 x=0xC8 room=1 dir=R
+STAIR y=0x40 x=0x48 room=1 dir=R
+STAIR y=0x48 x=0x90 room=1 dir=L
+STAIR y=0x58 x=0x18 room=1 dir=L
+STAIR y=0x78 x=0x98 room=1 dir=L
+STAIR y=0xA0 x=0x28 room=1 dir=R
+STAIR y=0xA0 x=0xE0 room=1 dir=R
+
+PYRAMID 11
+HALVES A3 D2
+DOOR -
+DOOR -
+DOOR y=0xA0 x=0x38 dest=12 dir=4
+DOOR y=0xA0 x=0x98 dest=10 dir=4
+MUMMY y=0x20 x=0xA0 room=0 type=2
+MUMMY y=0xA0 x=0x78 room=0 type=3
+GEM color=5 y=0x28 x=0xE0 lo=2
+GEM color=6 y=0x30 x=0x58 lo=8
+GEM color=8 y=0x68 x=0x58 lo=6
+GEM color=4 y=0x90 x=0xE8
+GEM color=3 y=0xA0 x=0x10 lo=5
+KNIFE y=0x68 x=0x38
+PICK y=0x38 x=0xB8
+PICK y=0x58 x=0x08
+PICK y=0x58 x=0x98
+PICK y=0xA8 x=0xE0
+ROTDOOR h=2 y=0x78 x=0x60 room=0 dir=2
+ROTDOOR h=2 y=0x78 x=0x98 room=0 dir=2
+STAIR y=0x28 x=0x88 room=0 dir=R
+STAIR y=0x30 x=0x40 room=0 dir=L
+STAIR y=0x48 x=0x10 room=0 dir=L
+STAIR y=0x48 x=0x98 room=0 dir=L
+STAIR y=0x68 x=0x20 room=0 dir=R
+STAIR y=0x68 x=0x78 room=0 dir=L
+STAIR y=0x68 x=0xB8 room=0 dir=R
+STAIR y=0x88 x=0x78 room=0 dir=L
+STAIR y=0xA8 x=0x60 room=0 dir=R
+STAIR y=0xA8 x=0xC0 room=0 dir=R
+
+PYRAMID 12
+HALVES A3 B0 C1 D1
+DOOR -
+DOOR -
+DOOR y=0x60 x=0xA0 dest=11 dir=4
+DOOR y=0x70 x=0xE1 dest=13 dir=4
+MUMMY y=0x18 x=0xE0 room=0 type=2
+MUMMY y=0x28 x=0x50 room=0 type=4
+MUMMY y=0x98 x=0x88 room=1 type=0
+GEM color=3 y=0x40 x=0x98
+GEM color=4 y=0x48 x=0x10 lo=5
+GEM color=6 y=0x88 x=0x20 lo=9
+GEM color=7 y=0x18 x=0x49 lo=8
+GEM color=7 y=0x68 x=0x39 lo=1
+GEM color=5 y=0x80 x=0x71 lo=4
+KNIFE y=0x68 x=0xD0
+KNIFE y=0x88 x=0x31
+KNIFE y=0x10 x=0xA1
+PICK y=0x10 x=0xF1
+PICK y=0x20 x=0x10
+PICK y=0x20 x=0x48
+PICK y=0x68 x=0x40
+PICK y=0xA0 x=0x18
+PICK y=0x38 x=0x91
+PICK y=0x88 x=0x59
+PICK y=0xA0 x=0xF1
+ROTDOOR h=0 y=0x38 x=0xA8 room=0 dir=2
+ROTDOOR h=2 y=0x58 x=0x58 room=1 dir=2
+TRAP y=0x98 x=0xE9
+STAIR y=0x30 x=0x28 room=0 dir=L
+STAIR y=0x40 x=0xD0 room=0 dir=R
+STAIR y=0x68 x=0x18 room=0 dir=L
+STAIR y=0x80 x=0xC0 room=0 dir=R
+STAIR y=0x88 x=0x70 room=0 dir=L
+STAIR y=0xA0 x=0xC0 room=0 dir=L
+STAIR y=0xA8 x=0x70 room=0 dir=R
+STAIR y=0x28 x=0xB8 room=1 dir=L
+STAIR y=0x48 x=0xA8 room=1 dir=R
+STAIR y=0x78 x=0xB0 room=1 dir=L
+STAIR y=0xA0 x=0x50 room=1 dir=R
+STAIR y=0xA0 x=0xB8 room=1 dir=L
+
+PYRAMID 13
+HALVES A2 D3
+DOOR -
+DOOR -
+DOOR y=0x80 x=0x18 dest=12 dir=8
+DOOR y=0x70 x=0xC8 dest=14 dir=4
+MUMMY y=0x28 x=0xD0 room=0 type=3
+MUMMY y=0x80 x=0x60 room=0 type=1
+GEM color=3 y=0x18 x=0xD8
+GEM color=4 y=0x28 x=0x28 lo=2
+GEM color=5 y=0x50 x=0x68 lo=7
+GEM color=6 y=0x58 x=0x50 lo=8
+GEM color=7 y=0x68 x=0x68 lo=4
+KNIFE y=0xA8 x=0x40
+PICK y=0x10 x=0x08
+PICK y=0x20 x=0x08
+PICK y=0x38 x=0x10
+PICK y=0x58 x=0x08
+PICK y=0x78 x=0x30
+PICK y=0x88 x=0xD0
+PICK y=0x98 x=0x08
+PICK y=0x98 x=0x50
+STAIR y=0x28 x=0x10 room=0 dir=L
+STAIR y=0x30 x=0xB0 room=0 dir=R
+STAIR y=0x48 x=0x28 room=0 dir=R
+STAIR y=0x50 x=0xD0 room=0 dir=L
+STAIR y=0x68 x=0x18 room=0 dir=L
+STAIR y=0x78 x=0xA0 room=0 dir=R
+STAIR y=0x88 x=0x48 room=0 dir=R
+STAIR y=0xA0 x=0xA8 room=0 dir=L
+STAIR y=0xA8 x=0x20 room=0 dir=R
+STAIR y=0xA8 x=0x68 room=0 dir=R
+
+PYRAMID 14
+HALVES A1 B2 C1 D3
+DOOR -
+DOOR y=0x98 x=0x71 dest=15 dir=1
+DOOR y=0x38 x=0xD8 dest=13 dir=8
+DOOR -
+MUMMY y=0xA0 x=0x80 room=0 type=3
+MUMMY y=0x20 x=0x10 room=0 type=2
+GEM color=3 y=0x48 x=0x50
+GEM color=4 y=0x68 x=0x50 lo=3
+GEM color=6 y=0x88 x=0x80 lo=8
+GEM color=8 y=0x38 x=0x49 lo=1
+GEM color=4 y=0x68 x=0x49 lo=4
+GEM color=5 y=0x88 x=0x49 lo=7
+KNIFE y=0xA8 x=0x48
+KNIFE y=0x80 x=0x89
+PICK y=0x10 x=0x08
+PICK y=0x10 x=0x10
+PICK y=0x10 x=0x18
+PICK y=0x10 x=0x68
+PICK y=0x28 x=0xA0
+PICK y=0x30 x=0x10
+PICK y=0x58 x=0x60
+PICK y=0x40 x=0x40
+PICK y=0x10 x=0xB1
+PICK y=0x30 x=0x31
+PICK y=0x48 x=0x69
+PICK y=0x68 x=0xA9
+ROTDOOR h=0 y=0x80 x=0xA0 room=0 dir=2
+STAIR y=0x28 x=0x68 room=0 dir=R
+STAIR y=0x30 x=0x18 room=0 dir=L
+STAIR y=0xA8 x=0x30 room=0 dir=R
+STAIR y=0xA8 x=0xC8 room=0 dir=L
+STAIR y=0x30 x=0x68 room=1 dir=L
+STAIR y=0x30 x=0xC0 room=1 dir=L
+STAIR y=0x40 x=0x10 room=1 dir=L
+STAIR y=0x50 x=0xC8 room=1 dir=L
+STAIR y=0x78 x=0xC0 room=1 dir=R
+STAIR y=0xA0 x=0x28 room=1 dir=R
+STAIR y=0xA0 x=0x88 room=1 dir=L
+
+PYRAMID 15
+HALVES A1 D1
+DOOR y=0x40 x=0xB8 dest=14 dir=2
+DOOR -
+DOOR y=0x78 x=0x18 dest=1 dir=8
+DOOR -
+MUMMY y=0x20 x=0x90 room=0 type=0
+MUMMY y=0x78 x=0x10 room=0 type=3
+GEM color=3 y=0x30 x=0x18
+GEM color=4 y=0x40 x=0x60 lo=5
+GEM color=6 y=0x58 x=0x68 lo=9
+GEM color=7 y=0x78 x=0x60 lo=8
+GEM color=6 y=0x80 x=0x48 lo=1
+GEM color=3 y=0x88 x=0x70 lo=4
+KNIFE y=0x28 x=0xC0
+KNIFE y=0xA8 x=0x10
+PICK y=0x10 x=0x08
+PICK y=0x10 x=0xF0
+PICK y=0x28 x=0x40
+PICK y=0x48 x=0x40
+PICK y=0x50 x=0x70
+PICK y=0x68 x=0xD8
+STAIR y=0x28 x=0x68 room=0 dir=R
+STAIR y=0x28 x=0xA8 room=0 dir=L
+STAIR y=0x48 x=0x98 room=0 dir=R
+STAIR y=0x48 x=0xE0 room=0 dir=R
+STAIR y=0x78 x=0xB8 room=0 dir=L
+STAIR y=0xA0 x=0xB8 room=0 dir=R
+STAIR y=0xA8 x=0x30 room=0 dir=R
+STAIR y=0xA8 x=0x50 room=0 dir=L
+

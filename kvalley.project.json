@@ -1,0 +1,12 @@
+{
+    "name": "kvalley",
+    "asmPath": "src/kvalley_8c.asm",
+    "debugPath": "kvalley.debug.json",
+    "romPath": "devector/kvalley.rom",
+    "romAlign": 2,
+    "cpu": "z80",
+    "settings": {
+        "speed": 1,
+        "viewMode": "noBorder"
+    }
+}

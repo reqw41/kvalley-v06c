@@ -1,0 +1,510 @@
+001   0000             	org 0x100
+002   0100             start:
+003   0100 F3          	di
+004   0101 31 00 70    	ld sp,0x7000
+005   0104             a_start:
+006   0104 11 A0 E0    	ld de,0xe0a0
+007   0107 06 A0       	ld b,0x00a0
+008   0109 3E 03       	ld a,3
+009   010B 32 97 03    	ld (nc_a),a
+010   010E             aloop:
+011   010E 0E 60       	ld c,96
+012   0110 1A          	ld a,(de)
+013   0111 02          	ld (bc),a
+014   0112 1C          	inc e
+015   0113 0C          	inc c
+016   0114 1A          	ld a,(de)
+017   0115 02          	ld (bc),a
+018   0116 1C          	inc e
+019   0117 0C          	inc c
+020   0118 1A          	ld a,(de)
+021   0119 02          	ld (bc),a
+022   011A 1C          	inc e
+023   011B 0C          	inc c
+024   011C 1A          	ld a,(de)
+025   011D 02          	ld (bc),a
+026   011E 1C          	inc e
+027   011F 0C          	inc c
+028   0120 1A          	ld a,(de)
+029   0121 02          	ld (bc),a
+030   0122 1C          	inc e
+031   0123 0C          	inc c
+032   0124 1A          	ld a,(de)
+033   0125 02          	ld (bc),a
+034   0126 1C          	inc e
+035   0127 0C          	inc c
+036   0128 1A          	ld a,(de)
+037   0129 02          	ld (bc),a
+038   012A 1C          	inc e
+039   012B 0C          	inc c
+040   012C 1A          	ld a,(de)
+041   012D 02          	ld (bc),a
+042   012E 1C          	inc e
+043   012F 0C          	inc c
+044   0130 1A          	ld a,(de)
+045   0131 02          	ld (bc),a
+046   0132 1C          	inc e
+047   0133 0C          	inc c
+048   0134 1A          	ld a,(de)
+049   0135 02          	ld (bc),a
+050   0136 1C          	inc e
+051   0137 0C          	inc c
+052   0138 1A          	ld a,(de)
+053   0139 02          	ld (bc),a
+054   013A 1C          	inc e
+055   013B 0C          	inc c
+056   013C 1A          	ld a,(de)
+057   013D 02          	ld (bc),a
+058   013E 1C          	inc e
+059   013F 0C          	inc c
+060   0140 1A          	ld a,(de)
+061   0141 02          	ld (bc),a
+062   0142 1C          	inc e
+063   0143 0C          	inc c
+064   0144 1A          	ld a,(de)
+065   0145 02          	ld (bc),a
+066   0146 1C          	inc e
+067   0147 0C          	inc c
+068   0148 1A          	ld a,(de)
+069   0149 02          	ld (bc),a
+070   014A 1C          	inc e
+071   014B 0C          	inc c
+072   014C 1A          	ld a,(de)
+073   014D 02          	ld (bc),a
+074   014E 1C          	inc e
+075   014F 0C          	inc c
+076   0150 04          	inc b
+077   0151 3A 97 03    	ld a,(nc_a)
+078   0154 3D          	dec a
+079   0155 32 97 03    	ld (nc_a),a
+080   0158 C2 0E 01    	jp nz,aloop
+081   015B             a_end:
+082   015B             b_start:
+083   015B 11 A0 E0    	ld de,0xe0a0
+084   015E 21 06 E0    	ld hl,0xe006
+085   0161 06 A0       	ld b,0x00a0
+086   0163 3E 03       	ld a,3
+087   0165 32 97 03    	ld (nc_a),a
+088   0168             bloop:
+089   0168 0E 60       	ld c,96
+090   016A 1A          	ld a,(de)
+091   016B B6          	or (hl)
+092   016C 02          	ld (bc),a
+093   016D 2C          	inc l
+094   016E 1C          	inc e
+095   016F 0C          	inc c
+096   0170 1A          	ld a,(de)
+097   0171 B6          	or (hl)
+098   0172 02          	ld (bc),a
+099   0173 2C          	inc l
+100   0174 1C          	inc e
+101   0175 0C          	inc c
+102   0176 1A          	ld a,(de)
+103   0177 B6          	or (hl)
+104   0178 02          	ld (bc),a
+105   0179 2C          	inc l
+106   017A 1C          	inc e
+107   017B 0C          	inc c
+108   017C 1A          	ld a,(de)
+109   017D B6          	or (hl)
+110   017E 02          	ld (bc),a
+111   017F 2C          	inc l
+112   0180 1C          	inc e
+113   0181 0C          	inc c
+114   0182 1A          	ld a,(de)
+115   0183 B6          	or (hl)
+116   0184 02          	ld (bc),a
+117   0185 2C          	inc l
+118   0186 1C          	inc e
+119   0187 0C          	inc c
+120   0188 1A          	ld a,(de)
+121   0189 B6          	or (hl)
+122   018A 02          	ld (bc),a
+123   018B 2C          	inc l
+124   018C 1C          	inc e
+125   018D 0C          	inc c
+126   018E 1A          	ld a,(de)
+127   018F B6          	or (hl)
+128   0190 02          	ld (bc),a
+129   0191 2C          	inc l
+130   0192 1C          	inc e
+131   0193 0C          	inc c
+132   0194 1A          	ld a,(de)
+133   0195 B6          	or (hl)
+134   0196 02          	ld (bc),a
+135   0197 2C          	inc l
+136   0198 1C          	inc e
+137   0199 0C          	inc c
+138   019A 1A          	ld a,(de)
+139   019B B6          	or (hl)
+140   019C 02          	ld (bc),a
+141   019D 2C          	inc l
+142   019E 1C          	inc e
+143   019F 0C          	inc c
+144   01A0 1A          	ld a,(de)
+145   01A1 B6          	or (hl)
+146   01A2 02          	ld (bc),a
+147   01A3 2C          	inc l
+148   01A4 1C          	inc e
+149   01A5 0C          	inc c
+150   01A6 1A          	ld a,(de)
+151   01A7 B6          	or (hl)
+152   01A8 02          	ld (bc),a
+153   01A9 2C          	inc l
+154   01AA 1C          	inc e
+155   01AB 0C          	inc c
+156   01AC 1A          	ld a,(de)
+157   01AD B6          	or (hl)
+158   01AE 02          	ld (bc),a
+159   01AF 2C          	inc l
+160   01B0 1C          	inc e
+161   01B1 0C          	inc c
+162   01B2 1A          	ld a,(de)
+163   01B3 B6          	or (hl)
+164   01B4 02          	ld (bc),a
+165   01B5 2C          	inc l
+166   01B6 1C          	inc e
+167   01B7 0C          	inc c
+168   01B8 1A          	ld a,(de)
+169   01B9 B6          	or (hl)
+170   01BA 02          	ld (bc),a
+171   01BB 2C          	inc l
+172   01BC 1C          	inc e
+173   01BD 0C          	inc c
+174   01BE 1A          	ld a,(de)
+175   01BF B6          	or (hl)
+176   01C0 02          	ld (bc),a
+177   01C1 2C          	inc l
+178   01C2 1C          	inc e
+179   01C3 0C          	inc c
+180   01C4 1A          	ld a,(de)
+181   01C5 B6          	or (hl)
+182   01C6 02          	ld (bc),a
+183   01C7 2C          	inc l
+184   01C8 1C          	inc e
+185   01C9 0C          	inc c
+186   01CA 04          	inc b
+187   01CB 3A 97 03    	ld a,(nc_a)
+188   01CE 3D          	dec a
+189   01CF 32 97 03    	ld (nc_a),a
+190   01D2 C2 68 01    	jp nz,bloop
+191   01D5             b_end:
+192   01D5             c_start:
+193   01D5 31 A0 E0    	ld sp,0xe0a0
+194   01D8 21 60 A0    	ld hl,0xa060
+195   01DB D1          	pop de
+196   01DC 73          	ld (hl),e
+197   01DD 2C          	inc l
+198   01DE 72          	ld (hl),d
+199   01DF 2C          	inc l
+200   01E0 D1          	pop de
+201   01E1 73          	ld (hl),e
+202   01E2 2C          	inc l
+203   01E3 72          	ld (hl),d
+204   01E4 2C          	inc l
+205   01E5 D1          	pop de
+206   01E6 73          	ld (hl),e
+207   01E7 2C          	inc l
+208   01E8 72          	ld (hl),d
+209   01E9 2C          	inc l
+210   01EA D1          	pop de
+211   01EB 73          	ld (hl),e
+212   01EC 2C          	inc l
+213   01ED 72          	ld (hl),d
+214   01EE 2C          	inc l
+215   01EF D1          	pop de
+216   01F0 73          	ld (hl),e
+217   01F1 2C          	inc l
+218   01F2 72          	ld (hl),d
+219   01F3 2C          	inc l
+220   01F4 D1          	pop de
+221   01F5 73          	ld (hl),e
+222   01F6 2C          	inc l
+223   01F7 72          	ld (hl),d
+224   01F8 2C          	inc l
+225   01F9 D1          	pop de
+226   01FA 73          	ld (hl),e
+227   01FB 2C          	inc l
+228   01FC 72          	ld (hl),d
+229   01FD 2C          	inc l
+230   01FE D1          	pop de
+231   01FF 73          	ld (hl),e
+232   0200 2C          	inc l
+233   0201 72          	ld (hl),d
+234   0202 2C          	inc l
+235   0203 31 B0 E0    	ld sp,0xe0b0
+236   0206 21 60 A1    	ld hl,0xa160
+237   0209 D1          	pop de
+238   020A 73          	ld (hl),e
+239   020B 2C          	inc l
+240   020C 72          	ld (hl),d
+241   020D 2C          	inc l
+242   020E D1          	pop de
+243   020F 73          	ld (hl),e
+244   0210 2C          	inc l
+245   0211 72          	ld (hl),d
+246   0212 2C          	inc l
+247   0213 D1          	pop de
+248   0214 73          	ld (hl),e
+249   0215 2C          	inc l
+250   0216 72          	ld (hl),d
+251   0217 2C          	inc l
+252   0218 D1          	pop de
+253   0219 73          	ld (hl),e
+254   021A 2C          	inc l
+255   021B 72          	ld (hl),d
+256   021C 2C          	inc l
+257   021D D1          	pop de
+258   021E 73          	ld (hl),e
+259   021F 2C          	inc l
+260   0220 72          	ld (hl),d
+261   0221 2C          	inc l
+262   0222 D1          	pop de
+263   0223 73          	ld (hl),e
+264   0224 2C          	inc l
+265   0225 72          	ld (hl),d
+266   0226 2C          	inc l
+267   0227 D1          	pop de
+268   0228 73          	ld (hl),e
+269   0229 2C          	inc l
+270   022A 72          	ld (hl),d
+271   022B 2C          	inc l
+272   022C D1          	pop de
+273   022D 73          	ld (hl),e
+274   022E 2C          	inc l
+275   022F 72          	ld (hl),d
+276   0230 2C          	inc l
+277   0231 31 C0 E0    	ld sp,0xe0c0
+278   0234 21 60 A2    	ld hl,0xa260
+279   0237 D1          	pop de
+280   0238 73          	ld (hl),e
+281   0239 2C          	inc l
+282   023A 72          	ld (hl),d
+283   023B 2C          	inc l
+284   023C D1          	pop de
+285   023D 73          	ld (hl),e
+286   023E 2C          	inc l
+287   023F 72          	ld (hl),d
+288   0240 2C          	inc l
+289   0241 D1          	pop de
+290   0242 73          	ld (hl),e
+291   0243 2C          	inc l
+292   0244 72          	ld (hl),d
+293   0245 2C          	inc l
+294   0246 D1          	pop de
+295   0247 73          	ld (hl),e
+296   0248 2C          	inc l
+297   0249 72          	ld (hl),d
+298   024A 2C          	inc l
+299   024B D1          	pop de
+300   024C 73          	ld (hl),e
+301   024D 2C          	inc l
+302   024E 72          	ld (hl),d
+303   024F 2C          	inc l
+304   0250 D1          	pop de
+305   0251 73          	ld (hl),e
+306   0252 2C          	inc l
+307   0253 72          	ld (hl),d
+308   0254 2C          	inc l
+309   0255 D1          	pop de
+310   0256 73          	ld (hl),e
+311   0257 2C          	inc l
+312   0258 72          	ld (hl),d
+313   0259 2C          	inc l
+314   025A D1          	pop de
+315   025B 73          	ld (hl),e
+316   025C 2C          	inc l
+317   025D 72          	ld (hl),d
+318   025E 2C          	inc l
+319   025F 31 00 70    	ld sp,0x7000
+320   0262             c_end:
+321   0262             d_start:
+322   0262 21 60 A0    	ld hl,0xa060
+323   0265 36 00       	ld (hl),0
+324   0267 2C          	inc l
+325   0268 36 00       	ld (hl),0
+326   026A 2C          	inc l
+327   026B 36 00       	ld (hl),0
+328   026D 2C          	inc l
+329   026E 36 00       	ld (hl),0
+330   0270 2C          	inc l
+331   0271 36 00       	ld (hl),0
+332   0273 2C          	inc l
+333   0274 36 00       	ld (hl),0
+334   0276 2C          	inc l
+335   0277 36 00       	ld (hl),0
+336   0279 2C          	inc l
+337   027A 36 00       	ld (hl),0
+338   027C 2C          	inc l
+339   027D 36 00       	ld (hl),0
+340   027F 2C          	inc l
+341   0280 36 00       	ld (hl),0
+342   0282 2C          	inc l
+343   0283 36 00       	ld (hl),0
+344   0285 2C          	inc l
+345   0286 36 00       	ld (hl),0
+346   0288 2C          	inc l
+347   0289 36 00       	ld (hl),0
+348   028B 2C          	inc l
+349   028C 36 00       	ld (hl),0
+350   028E 2C          	inc l
+351   028F 36 00       	ld (hl),0
+352   0291 2C          	inc l
+353   0292 36 00       	ld (hl),0
+354   0294 21 60 A1    	ld hl,0xa160
+355   0297 36 00       	ld (hl),0
+356   0299 2C          	inc l
+357   029A 36 00       	ld (hl),0
+358   029C 2C          	inc l
+359   029D 36 00       	ld (hl),0
+360   029F 2C          	inc l
+361   02A0 36 00       	ld (hl),0
+362   02A2 2C          	inc l
+363   02A3 36 00       	ld (hl),0
+364   02A5 2C          	inc l
+365   02A6 36 00       	ld (hl),0
+366   02A8 2C          	inc l
+367   02A9 36 00       	ld (hl),0
+368   02AB 2C          	inc l
+369   02AC 36 00       	ld (hl),0
+370   02AE 2C          	inc l
+371   02AF 36 00       	ld (hl),0
+372   02B1 2C          	inc l
+373   02B2 36 00       	ld (hl),0
+374   02B4 2C          	inc l
+375   02B5 36 00       	ld (hl),0
+376   02B7 2C          	inc l
+377   02B8 36 00       	ld (hl),0
+378   02BA 2C          	inc l
+379   02BB 36 00       	ld (hl),0
+380   02BD 2C          	inc l
+381   02BE 36 00       	ld (hl),0
+382   02C0 2C          	inc l
+383   02C1 36 00       	ld (hl),0
+384   02C3 2C          	inc l
+385   02C4 36 00       	ld (hl),0
+386   02C6 21 60 A2    	ld hl,0xa260
+387   02C9 36 00       	ld (hl),0
+388   02CB 2C          	inc l
+389   02CC 36 00       	ld (hl),0
+390   02CE 2C          	inc l
+391   02CF 36 00       	ld (hl),0
+392   02D1 2C          	inc l
+393   02D2 36 00       	ld (hl),0
+394   02D4 2C          	inc l
+395   02D5 36 00       	ld (hl),0
+396   02D7 2C          	inc l
+397   02D8 36 00       	ld (hl),0
+398   02DA 2C          	inc l
+399   02DB 36 00       	ld (hl),0
+400   02DD 2C          	inc l
+401   02DE 36 00       	ld (hl),0
+402   02E0 2C          	inc l
+403   02E1 36 00       	ld (hl),0
+404   02E3 2C          	inc l
+405   02E4 36 00       	ld (hl),0
+406   02E6 2C          	inc l
+407   02E7 36 00       	ld (hl),0
+408   02E9 2C          	inc l
+409   02EA 36 00       	ld (hl),0
+410   02EC 2C          	inc l
+411   02ED 36 00       	ld (hl),0
+412   02EF 2C          	inc l
+413   02F0 36 00       	ld (hl),0
+414   02F2 2C          	inc l
+415   02F3 36 00       	ld (hl),0
+416   02F5 2C          	inc l
+417   02F6 36 00       	ld (hl),0
+418   02F8             d_end:
+419   02F8             e_start:
+420   02F8 31 70 A0    	ld sp,0xa070
+421   02FB 11 00 00    	ld de,0
+422   02FE D5          	push de
+423   02FF 11 00 00    	ld de,0
+424   0302 D5          	push de
+425   0303 11 00 00    	ld de,0
+426   0306 D5          	push de
+427   0307 11 00 00    	ld de,0
+428   030A D5          	push de
+429   030B 11 00 00    	ld de,0
+430   030E D5          	push de
+431   030F 11 00 00    	ld de,0
+432   0312 D5          	push de
+433   0313 11 00 00    	ld de,0
+434   0316 D5          	push de
+435   0317 11 00 00    	ld de,0
+436   031A D5          	push de
+437   031B 31 70 A1    	ld sp,0xa170
+438   031E 11 00 00    	ld de,0
+439   0321 D5          	push de
+440   0322 11 00 00    	ld de,0
+441   0325 D5          	push de
+442   0326 11 00 00    	ld de,0
+443   0329 D5          	push de
+444   032A 11 00 00    	ld de,0
+445   032D D5          	push de
+446   032E 11 00 00    	ld de,0
+447   0331 D5          	push de
+448   0332 11 00 00    	ld de,0
+449   0335 D5          	push de
+450   0336 11 00 00    	ld de,0
+451   0339 D5          	push de
+452   033A 11 00 00    	ld de,0
+453   033D D5          	push de
+454   033E 31 70 A2    	ld sp,0xa270
+455   0341 11 00 00    	ld de,0
+456   0344 D5          	push de
+457   0345 11 00 00    	ld de,0
+458   0348 D5          	push de
+459   0349 11 00 00    	ld de,0
+460   034C D5          	push de
+461   034D 11 00 00    	ld de,0
+462   0350 D5          	push de
+463   0351 11 00 00    	ld de,0
+464   0354 D5          	push de
+465   0355 11 00 00    	ld de,0
+466   0358 D5          	push de
+467   0359 11 00 00    	ld de,0
+468   035C D5          	push de
+469   035D 11 00 00    	ld de,0
+470   0360 D5          	push de
+471   0361 31 00 70    	ld sp,0x7000
+472   0364             e_end:
+473   0364             f_start:
+474   0364 21 00 C8    	ld hl,0xc800
+475   0367 11 A0 E0    	ld de,0xe0a0
+476   036A 06 30       	ld b,48
+477   036C             floop:
+478   036C 36 36       	ld (hl),0x36
+479   036E 23          	inc hl
+480   036F 1A          	ld a,(de)
+481   0370 77          	ld (hl),a
+482   0371 23          	inc hl
+483   0372 13          	inc de
+484   0373 36 2C       	ld (hl),0x2C
+485   0375 23          	inc hl
+486   0376 05          	dec b
+487   0377 C2 6C 03    	jp nz,floop
+488   037A             f_end:
+489   037A             g_start:
+490   037A 21 00 C8    	ld hl,0xc800
+491   037D 11 A0 E0    	ld de,0xe0a0
+492   0380 06 18       	ld b,24
+493   0382             gloop:
+494   0382 36 11       	ld (hl),0x11
+495   0384 23          	inc hl
+496   0385 1A          	ld a,(de)
+497   0386 77          	ld (hl),a
+498   0387 23          	inc hl
+499   0388 13          	inc de
+500   0389 1A          	ld a,(de)
+501   038A 77          	ld (hl),a
+502   038B 23          	inc hl
+503   038C 13          	inc de
+504   038D 36 D5       	ld (hl),0x0D5
+505   038F 23          	inc hl
+506   0390 05          	dec b
+507   0391 C2 82 03    	jp nz,gloop
+508   0394             g_end:
+509   0394 C3 94 03    hang:	jp hang
+510   0397 00          nc_a:	db 0

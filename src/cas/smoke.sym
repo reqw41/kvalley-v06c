@@ -1,0 +1,12 @@
+plane: equ 0000010Ch
+column: equ 0000010Fh
+shift: equ 00000114h
+gotbit: equ 0000011Dh
+fill: equ 00000125h
+fillrow: equ 00000128h
+stop: equ 0000014Ch
+isr_skip: equ 0000014Fh
+isr: equ 00000157h
+ploop: equ 00000161h
+isr2: equ 00000184h
+pal: equ 00000186h
