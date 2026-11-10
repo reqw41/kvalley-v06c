@@ -22,7 +22,7 @@ try:
                         capture_output=True, text=True).stdout.strip()
 except Exception:
     br = ''
-if os.environ.get('KV_NO_VERSION'):
+if not os.environ.get('KV_VERSION'):  # [mummy-zx] метка на титуле только с KV_VERSION=1
     glyphs = [0] * 11
     body = 'blank'
     note = 'титул без метки версии'
@@ -54,6 +54,7 @@ python3 tools/rom_pad.py
 # Заодно печатаем, ГДЕ теряется место: зазоры от .align видны сразу, их можно занять
 # переносом процедуры (переносить только целиком, до ret — см. коммит 89f10b8).
 python3 tools/mem_map.py
+python3 tools/page_guard.py
 # ЗАМОРОЗКА СНЯТА 2026-08-05. Гейт «ROM байт-в-байт с эталоном» стоял на время разрезки
 # на модули: она давно закончена, а эталон build/freeze.md5 последний раз обновлялся 325
 # коммитов назад (822a9db). Всё это время каждая сборка печатала FREEZE MISMATCH и

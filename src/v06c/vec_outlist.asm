@@ -65,7 +65,6 @@ vsp_hidep:
 vec_nested_countdown:
 	ld	hl, vec_fr_par
 	dec	(hl)
-	jp	p, v25_nested_cdok
+	ret	p
 	inc	(hl)
-v25_nested_cdok:
 	ret

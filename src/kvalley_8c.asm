@@ -44,6 +44,9 @@
 ;  можно использовать под перенос процедур, а не терять в середине образа.
 	.include "v06c/vec_topmask_gap.asm"
 	.include "gen/vec_hoptab.asm"
+	.include "v06c/vec_repair.asm"	; [mummy-zx] до .align: за ним место заняли gmo_tab/gmd_tab
+	.include "v06c/vec_keys.asm"
+	.include "v06c/vec_xmum.asm"
 	.include "v06c/vec_tables.asm"
 ;  Цвет концовки — ЗА выровненными таблицами: холодный код, которому самое место в хвосте
 ;  (иначе он толкает pre-align через границу страницы и зазор перед vec_revtab растёт).
@@ -51,7 +54,6 @@
 ;  ПОЧИНКА СПРАЙТА ПОСЛЕ ФОН-БЛИТА (задача#54) — ЗА ВЫРАВНИВАНИЕМ по той же причине,
 ;  что vec_ending.asm: перед `.align 256` оставалось 7 свободных байт,
 ;  и 45 байт обёртки пачки, положенные ДО него, растили образ на 256 Б.
-	.include "v06c/vec_repair.asm"
 	.include "v06c/vec_bw.asm"
 ;  ЗАДАЧА#46 — ЗА ВЫРАВНИВАНИЕМ по той же причине, что три соседа выше: тело скрытия
 ;  спрайта (vsp_hidep) холодное, а в vec_sprout.asm перед `.align 256` свободно 7 байт.
@@ -60,9 +62,14 @@
 ;  Проверка столкновения между полушагами прыжка героя — холодный хвост, за выравниванием
 ;  (в doSalto стоит только jp на неё: +2 Б при зазоре 5 Б перед .align).
 	.include "v06c/vec_jumpmid.asm"
+;  Кирка: шум как на MSX (биты на счётчик 2 ВИ53), хвост за выравниванием.
+	.include "v06c/vec_pick.asm"
+;  [mummy-zx-a V1] Подготовка героя: сдвиг прямо из pool, развёрнутое слияние пары.
+	.include "v06c/vec_hero.asm"
 ;  Хвост логики игры (задача logic-opt): быстрые пути горячих процедур, см. шапку файла.
 	.include "game/kvalley_logic_tail.asm"
 ;  Потоки звука, вынесенные ЗА выровненные таблицы (tools/snd_gen/layout.json): чистые данные, адресуются по меткам
 ;  из vsn_tab. Их размер подобран так, чтобы зазор от `.align 256` перед vec_rev4 сошёл на ноль (см. mem_map.py).
 	.include "gen/snd_streams_far.asm"
 	.include "game/kvalley_vars.asm"
+	.include "v06c/vec_bootov.asm"

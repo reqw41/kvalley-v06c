@@ -162,7 +162,7 @@ v25_cdok:
 ;  влез бы между пачкой и тиком, добавив дрожание к моменту вывода. Возвращаем DI —
 ;  ровно то состояние, в котором обвязка шла до разделения (ei делает эпилог ISR/тик).
 	di
-;  КЛАВИША S (ряд 6): слушание по кругу музыка+SFX -> только SFX -> тишина.
+;  КЛАВИША УС (было S, ряд 6, по кругу из трёх режимов): музыка+SFX <-> только SFX.
 ;  Чип (AY/ВИ53) выбран на буте и сюда не входит. Меток на экране нет.
 	ld	a, (vec_kbs)
 	ld	b, a
@@ -172,21 +172,17 @@ v25_cdok:
 	and	b	; A = свежие нажатия
 	ld	(hl), b
 	ld	c, a	; C переживает vec_snd_apply
-	and	0x08	; --- S ---
+	and	0x40	; --- УС: музыка вкл/выкл, эффекты звучат всегда (режимы 0 <-> 1) ---
 	jp	z, vec_snd_no
 	ld	a, (vec_snd_mode)
-	inc	a
-	cp	3
-	jp	c, vsm_set
-	xor	a
-vsm_set:
+	xor	1
 	ld	(vec_snd_mode), a
 	call	vec_snd_apply
 vec_snd_no:
-;  --- P: пауза. Вход глушит звук (иначе последняя нота тянулась бы бесконечно — плеер
+;  --- ВК (было P): пауза. Вход глушит звук (иначе последняя нота тянулась бы бесконечно — плеер
 ;  стоит, а чип продолжает звучать), выход поднимает выбранный источник заново.
 	ld	a, c
-	and	0x01
+	and	0x04	; ВК
 	jp	z, vec_pause_no
 	ld	a, (vec_paused)
 	xor	1
@@ -209,7 +205,7 @@ vec_isr_nr:
 ;  ловится всегда.
 	ld	a, (vec_paused)
 	or	a
-	jp	nz, vec_isr_pause
+	jp	nz, vec_isr_pq	; [mummy-zx] пауза; там же АР2 -> титул
 ;  Штатный кадровый тик музыки (первое, что делает tickMain) закрывает счёт работы:
 ;  аккумулятор кооп-тиков меряет работу С МОМЕНТА ПОСЛЕДНЕГО ТИКА, иначе пара клеток HUD
 ;  за кадр накопила бы лишний тик и разогнала темп в обычном геймплее.
@@ -503,6 +499,11 @@ vsnd_tick_clk:
 ;  потерю (vth_nc); (5) опросы блитов клеток с часами в 5 раз чаще (vsnd_k_clk).
 VTM_BIAS:	equ 768	; смещение накопителя, отсчёты ВИ53 (1536 тактов)
 vsnd_tick_hdr:
+;  [mummy-zx] ПАУЗА: тик плеера в шапке не делаем. Часы ВИ53 в паузе идут (Emu80, железо), и шапка вела
+;  мелодию дальше при заглушённом hush чипе — музыка в паузе играла (было и в 3p, в vector06js не видно).
+	ld	a, (vec_paused)
+	or	a
+	ret	nz
 	ld	a, (vtm_have)
 	or	a
 	jp	z, vth_nc
@@ -647,7 +648,12 @@ RDPSG:	; A=14 (joystick). Читаем РЕАЛЬНЫЙ порт джойсти�
 ;  (RTL MiSTer Vector-06C.sv:294/635 io_data=joyA_o, active-low байт: b0=RIGHT b1=LEFT b2=UP
 ;  b3=DOWN b6=FIRE1 b7=FIRE2, idle b4/5=1; отд.чип, PPI-инициализация не нужна). Переставляем в
 ;  MSX-формат RDPSG(14) active-low: b0=Up b1=Down b2=Left b3=Right b4=trigA b5=trigB (ReadKeys cpl).
+;  [mummy-zx] ДЖОЙСТИК «П» (ППИ2, порт B = 06; режим ставит vec_init) — та же раскладка, что у 0E,
+;  оба active-low: склеиваем AND, нажатие на любом из двух портов = нажатие.
+	in	a, (0x06)
+	ld	b, a
 	in	a, (0x0E)	; active-low Вектора
+	and	b
 	cpl	; active-high: b0=R b1=L b2=U b3=D b6=F1 b7=F2 (1=нажато)
 	ld	b, a
 	rrca	; ror2: U->b0 D->b1 F1->b4 F2->b5 (маска 33h)
@@ -666,8 +672,6 @@ RDPSG:	; A=14 (joystick). Читаем РЕАЛЬНЫЙ порт джойсти�
 	and	0x08
 	or	c
 	cpl	; Mp active-high -> vec_joy active-low (покой b6/7=1)
-	ret
-WRTVDP:	; B=данные C=регистр : игнор (таблицы SCREEN2 фиксированы)
 	ret
 SETWR:
 	ld	(vec_vdp_ptr), hl
@@ -774,8 +778,7 @@ vcw_col:	; gem-фильтр + fold + vec_col_store (как vw_colw)
 	ld	a, h	; фолд банка -> свёрнутый адрес цвета
 	and	7
 	ld	h, a
-	ld	a, c
-	call	vec_col_store
+	ld	a, c	; [mummy-zx] здесь был call vec_col_store — одинокий ret
 vcw_end:
 	pop	hl
 	pop	de

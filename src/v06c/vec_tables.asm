@@ -16,6 +16,23 @@ vec_rev4:
 	db	0x000,0x008,0x004,0x00C,0x002,0x00A,0x006,0x00E
 	db	0x001,0x009,0x005,0x00D,0x003,0x00B,0x007,0x00F
 ;  A = байт -> A = бит-реверс. Клоб A,H,L; B,C,D,E целы (smk_blk держит B = число блоков).
+;  [mummy-zx] ТАБЛИЦЫ С ИНДЕКСОМ БЕЗ ПЕРЕНОСА (`add a,l / ld l,a`) — СРАЗУ ЗА vec_rev4, то есть в
+;  начале выровненной страницы: здесь они не пересекут её границу ни при какой правке кода.
+;  ДО ЭТОГО они стояли в kvalley_logic_pre.asm, и сдвиг кода перед ними на 27 Б (снятый
+;  SetVideoMode) положил gmo_tab на 0x3EF7: ряды 5+ брали старший байт адреса из чужой
+;  страницы, гем ставился в код (vsm_p2u), пачка героя писала в 0x40xx — падение. Стенд
+;  lo_gate проверял только gmd_tab. Теперь границы страниц проверяет tools/page_guard.py
+;  на каждой сборке.
+gmo_tab:
+	dw	MapaRAMRoot+0, MapaRAMRoot+96, MapaRAMRoot+192, MapaRAMRoot+288
+	dw	MapaRAMRoot+384, MapaRAMRoot+480, MapaRAMRoot+576, MapaRAMRoot+672
+	dw	MapaRAMRoot+768, MapaRAMRoot+864, MapaRAMRoot+960, MapaRAMRoot+1056
+	dw	MapaRAMRoot+1152, MapaRAMRoot+1248, MapaRAMRoot+1344, MapaRAMRoot+1440
+	dw	MapaRAMRoot+1536, MapaRAMRoot+1632, MapaRAMRoot+1728, MapaRAMRoot+1824
+	dw	MapaRAMRoot+1920, MapaRAMRoot+2016, MapaRAMRoot+2112, MapaRAMRoot+2208
+	dw	MapaRAMRoot+2304, MapaRAMRoot+2400, MapaRAMRoot+2496, MapaRAMRoot+2592
+	dw	MapaRAMRoot+2688, MapaRAMRoot+2784, MapaRAMRoot+2880, MapaRAMRoot+2976
+gmd_tab:	dw	momiaDat, momiaDat+22, momiaDat+44, momiaDat+66
 vec_rev8:
 	push	bc
 	ld	l, a

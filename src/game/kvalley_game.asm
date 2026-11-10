@@ -157,7 +157,7 @@ tickMain:
 		ld	(vec_fr_par), a	; следующий старт через 2 видеокадра (25 Гц)
 		ei
 		call	chkControls	; Обновляет состояние управления
-		call	runGame		; Выполняет логику игры
+		call	demoRun		; Выполняет логику игры (демо: два тика 50 Гц оригинала)
 
 		xor	a
 		ld	(tickInProgress), a ; Отмечает завершение текущей итерации
@@ -263,38 +263,13 @@ writeDataVRAM3:
 ; Запускает бесконечный цикл, типично для Konami.
 ;-------------------------------------------------------------------------------
 
-startCode:
-		di
-		ld	a, 0x0C3
-		ld	(H_TIMI), a
-		ld	hl, tickMain
-		ld	(H_TIMI+1), hl	; Ставит процедуру прерывания, ведущую логику игры
-
-		ld	sp, stackTop	; Устанавливает стек
-		ld	hl, GameStatus
-		ld	de, subStatus
-;  ЗАДАЧА#37: длина была ИММЕДИАТОМ 0x6FF (1791) — очистка доходила до 0x72FF, то есть
-;  на 748 Б ЗАЛЕЗАЛА В ЗОНУ СТЕКА (при старой раскладке безвредно: стек лежал выше SP).
-;  После уплотнения раскладки такая длина снесла бы живой стек и карту, поэтому чистим
-;  РОВНО область игровых переменных, выражением от границы (GameStatus..varsEnd-1).
-;  ЗАДАЧА#48: граница называется varsEnd, а не stackArea — стек уехал в другую зону p3 и
-;  больше не стоит впритык за переменными. ЧИСЛО НЕ ИЗМЕНИЛОСЬ (620): длина этой очистки
-;  входит во время бута, а через него — в фазу свободно бегущего timer и в эталоны концовки.
-		ld	bc, varsEnd-GameStatus-1
-		ld	(hl), 0
-	call vec_ldir_fwd	; Инициализирует область переменных игры
-
-		ld	a, 1
-		ld	(tickInProgress), a ; Не даёт выполняться логике игры во время инициализации железа
-		call	initHardware	; Инициализирует видеорежим и PSG
-
-		xor	a
-		ld	(tickInProgress), a ; Разрешает выполнение логики игры на следующем прерывании
-		call	RDVDP		; Сбрасывает флаг прерывания
-		ei
-
+;  [mummy-zx] startCode (исполняется один раз после vec_init) — в бут-оверлее src/v06c/vec_bootov.asm;
+;  здесь остался только вечный цикл ожидания.
 dummyLoop:
 		ei
+	ld	a, (vnz_dly)	; [кирка] шумит -> вместо halt биты шума до следующего прерывания (vec_pick.asm)
+	or	a
+	jp	nz, vnz_idle
 		halt
 	jp dummyLoop
 
@@ -365,7 +340,6 @@ InitTitle:
 		call	vec_su_menu
 		call	LoadIntroGfx
 		call	setColor
-		call	SetVideoMode
 		xor	a
 		ld	(gameLogoCnt), a
 		jp	NextSubStatus
@@ -396,6 +370,7 @@ SetDemo:
 		ld	(PiramidesPasadas), hl ; Каждый бит — пройдена ли соответствующая пирамида
 		ld	a, l
 		ld	(numFinishGame), a ; Сколько раз игра пройдена
+		ld	(timer), a	; [demo-sync] фаза timer известна: темп лестниц и мумий в демо зависит от чётности
 
 		call	setDatosPartida
 
@@ -499,8 +474,7 @@ initStage2:
 		ld	(flagStageClear), a
 		call	AI_Salidas
 
-		ld	a, (controlPlayer) ; bit 6 = героем управляет игрок
-		and	1<<6
+		call	isPl		; Z = демо
 	jp z,initStage3
 
 		ld	a, 0x8B		; Игровая музыка
@@ -584,10 +558,8 @@ tickMuerto:
 		or	a
 		ret	nz		; Играет музыка смерти
 
-		ld	a, (controlPlayer) ; bit 6 = героем управляет игрок
-;  [2026-08-04] ТОЧНОЕ ПРЕОБРАЗОВАНИЕ: спилл A снят — A мёртв (pierdeVida начинает с
-;  `ld a,(Vidas)`, z-путь — с `xor a`). Флаги — от того же and.
-	and 1<<6
+;  [2026-08-04] A мёртв (pierdeVida начинает с `ld a,(Vidas)`, z-путь — с `xor a`).
+		call	isPl		; NZ = игрок
 	jp nz,pierdeVida
 
 		xor	a
@@ -1222,9 +1194,8 @@ renderMarcador:
 ;----------------------------------------------------
 
 SumaPuntos:
-		ld	a, (controlPlayer) ; bit 6 = героем управляет игрок
-		add	a, a
-		ret	p		; Режим демо — очки не начисляются
+		call	isPl
+		ret	z		; Режим демо — очки не начисляются
 
 		ld	hl, score_0000xx
 		ld	a, (hl)
@@ -1882,17 +1853,7 @@ InviertePatron:
 ; Глушит PSG, очищает VRAM и ставит видеорежим
 ;----------------------------------------------------
 
-initHardware:
-;  [snd-vi53] Был `SetPSGMixer(0xB8)` — запись микшера AY (тоны вкл, шум выкл). Микшера больше нет: у проигрывателя
-;  ВИ53 канал включают события потока. Заодно прежняя запись пересчитывала каналы по тени регистров, а тень тут
-;  уже согласована с чипом, так что состояние выхода она не меняла.
-		ld	a, 0x20		; Тишина
-		call	setMusic
-
-		ld	de, 0		; (!?) Не должно ли быть HL? Хотя антикопия использует DE, процедура "setFillVRAM" использует HL
-		ld	bc, 0x4000
-		xor	a
-		call	setFillVRAM
+;  [mummy-zx] initHardware (один вызов, из startCode) — в бут-оверлее src/v06c/vec_bootov.asm.
 
 ;----------------------------------------------------
 ;
@@ -1908,28 +1869,8 @@ initHardware:
 ; Цвет фона = #E4 (серый/синий)
 ;----------------------------------------------------
 
-SetVideoMode:
-		ld	hl, VDP_InitData
-		ld	d, 8
-		ld	c, 0
-
-setVideoMode2:
-		ld	b, (hl)
-		call	WRTVDP
-		inc	hl
-		inc	c
-		dec	d
-	jp nz,setVideoMode2
-		ret
-
-VDP_InitData:	db 2
-		db 0x0E2
-		db 0x0E
-		db 0x7F
-		db 7
-		db 0x76
-		db 3
-		db 0x0E4
+;  [mummy-zx] SetVideoMode/VDP_InitData сняты: 8 вызовов WRTVDP, а он на Векторе — одинокий ret
+;  (таблицы SCREEN2 фиксированы). Вызовы: титул (InitTitle) и бут — убраны вместе с ним.
 
 
 ;----------------------------------------------------
@@ -2134,6 +2075,7 @@ tickGame:
 
 tickGame2:
 		call	vec_nat_sprites	; Обновляет спрайты RAM->VRAM
+tickGame3:				; [demo-sync] вход второго тика демо (без отрисовки)
 		call	chkScroll	; Проверяет, выходит ли герой за экран, и отмечает необходимость скролла
 ;  ЗАДАЧА #35: здесь стоял `call drawBrilloGemas` — холостая перезапись MSX-таблицы цвета
 ;  КАЖДЫЙ игровой тик (≈4400 тактов, ≈7.4% кадра). Снят, см. комментарий на месте процедуры.
@@ -2364,9 +2306,8 @@ protaAnda3:
 		ld	(timerEmpuja), a ; Сбрасывает счётчик толкания
 
 protaAnda4:
-		ld	a, (controlPlayer)
-		add	a, a
-		jp	p, protaAnda4s	; демо (bit6=0): шаг как на 50 Гц
+		call	isPl
+		jp	z, protaAnda4s	; демо (bit6=0): шаг как на 50 Гц
 		ld	a, (GameStatus)
 		cp	0x0A		; концовка: шаг как на 50 Гц, иначе уходит за край
 		jp	nz, protaAnda4g
@@ -2574,9 +2515,8 @@ protaEscaleras:
 		ret	z		; Не нажаты ни ВПРАВО, ни ВЛЕВО
 
 		ld	b, 0		; игра 25 Гц: каждый тик = mask 1 на 50 Гц
-		ld	a, (controlPlayer)
-		add	a, a
-		jp	m, protaEsc_b	; игрок
+		call	isPl
+		jp	nz, protaEsc_b	; игрок
 		inc	b		; демо: mask 1, как запись 50 Гц
 protaEsc_b:
 		xor	a
@@ -3456,9 +3396,9 @@ chkBajaEscalera:
 		inc	hl
 		ld	a, (hl)		; X
 		and	7
-		sub	3
-		cp	3		; 3..5: 0xA8×2 даёт +2 px и минует ровно 4
-	jp nc,noCogeEscalera
+		cp	4
+		call	nz, bajaWinX	; демо: только X&7==4 (шаг 0xA8 как на 50 Гц); игрок: 3..5. C = нельзя
+	jp c,noCogeEscalera
 
 		dec	hl
 		dec	hl
@@ -3487,16 +3427,7 @@ chkBajaEsc2:
 					; Также используется, чтобы узнать, был ли прыжок вертикальным (сохраняет состояние клавиш в момент прыжка.
 
 chkBajaEsc3:
-		inc	hl		; Xdecimal
-		xor	a
-		ld	(hl), a		; дробь сброшена — иначе после схода шаг уедет
-		inc	hl		; X
-		ld	a, (hl)
-		and	0xF8
-		or	4		; в центр тайла (точка схода)
-		ld	(hl), a
-		dec	hl
-		dec	hl		; Y
+		call	bajaSnap	; игрок: дробь X в 0, X в центр тайла; демо: не трогает. HL -> Y
 		ld	a, (hl)
 		add	a, 4
 		ld	(hl), a		; Сдвигает персонажа на 4 пикселя вниз
@@ -5100,7 +5031,7 @@ chkArea:
 		sub	(hl)		; Смещение X точки
 		inc	hl
 		add	a, (hl)		; Ширина области
-	jp nc,chkArea2	; Не внутри
+	ret nc		; Не внутри
 
 		ld	a, c		; Y области
 		sub	d		; Y точки
@@ -8010,8 +7941,8 @@ nextMomia:
 		dw momiaSaltando	; 1 = Обрабатывает прыжок
 		dw momiaCayendo		; 2 = Мумия падает. Достигнув пола, переходит в состояние ходьбы
 		dw momiaEscaleras	; 3 = Двигает мумию по лестнице и проверяет, дошла ли она до её конца
-		dw momiaLimbo		; 4 = Ждёт некоторое время перед переходом к следующему состоянию (появление)
-		dw momiaAparece		; 5 = Процесс появления мумии из облака пыли
+		dw momiaLimboW		; 4 = Ждёт некоторое время перед переходом к следующему состоянию (появление)
+		dw momiaAparW		; 5 = Процесс появления мумии из облака пыли
 		dw momiaSuicida		; 6 = Идёт вправо и взрывается
 		dw momiaPiensa		; 7 = Смотрит по сторонам и решает, как приблизиться к герою
 		dw momiaDesaparece
@@ -8027,9 +7958,7 @@ nextMomia:
 
 momiaAnda:
 ;  timer==0 → status=THINK, timer=vecesDuda[tipo]. Один курсор по записи.
-		ld	hl, (z80_ix)
-		ld	de, ACTOR_TIMER
-		add	hl, de
+		call	getMomiaTimer	; HL -> ACTOR_TIMER (+17) мумии из z80_ix
 		ld	a, (hl)
 		or	a
 	jp nz,momiaAnda2
@@ -8053,9 +7982,7 @@ momiaAnda2:
 		call	tmrAnd	; [door-wall r3] маска под 25 Гц (демо: прежняя)
 	jp nz,momiaAnda3
 
-		ld	hl, (z80_ix)	; NAT: ветка «мумия ходит» (нативная пометка)
-		ld	de, ACTOR_TIMER
-		add	hl, de	; ->ACTOR_TIMER +17
+		call	getMomiaTimer	; HL -> ACTOR_TIMER (+17) мумии из z80_ix
 		dec	(hl)		; Каждые 16 итераций уменьшает время ходьбы
 
 momiaAnda3:
@@ -8146,9 +8073,8 @@ momiaDecStress:
 ;----------------------------------------------------
 
 momiaUpdate:
-		ld	a, (controlPlayer)
-		add	a, a
-		jp	p, momiaUpd_s	; демо (bit6=0): один шаг, как на 50 Гц
+		call	isPl
+		jp	z, momiaUpd_s	; демо (bit6=0): один шаг, как на 50 Гц
 		call	mumWalk2
 		jp	momiaCalcFrame
 momiaUpd_s:
@@ -8533,9 +8459,7 @@ momiaEscaleras:
 		jp	momiaCalcFrame	; peephole: был `call ... / ret` -> хвостовой jp
 
 setMomiaPensar:
-		ld	hl, (z80_ix)	; NAT IX->HL S1
-		ld	de, 0x11
-		add	hl, de	; ->ACTOR_TIMER +17
+		call	getMomiaTimer	; HL -> ACTOR_TIMER (+17) мумии из z80_ix
 		ld	(hl), 0 ; Таймер 0 + состояние ходьбы → на следующей итерации переход в состояние размышления
 
 setMomiaAndar:
@@ -8570,9 +8494,7 @@ momiaLimbo:
 		pop	hl		; Снимает со стека функцию обновления атрибутов мумии (не видна)
 ;  25 Гц: timer уже +1 за логический тик (runGame). Оригинал 50 Гц + and 1 = те же
 ;  25 декрементов/с. Второй and 1 здесь давал 12.5/с — лимбо вдвое дольше MSX.
-		ld	hl, (z80_ix)	; NAT IX->HL S2b
-		ld	de, 0x11
-		add	hl, de	; ->ACTOR_TIMER +17
+		call	getMomiaTimer	; HL -> ACTOR_TIMER (+17) мумии из z80_ix
 		dec	(hl)
 		jp	nz, chkLastMomia ; Ещё не пришло время появления
 		ld	hl, (z80_ix)
@@ -8594,14 +8516,8 @@ momiaLimbo:
 ;----------------------------------------------------
 
 momiaAparece:
-		ld	hl, (z80_ix)	; NAT IX->HL: указатель на структуру мумии
-		inc	hl		; ->ACTOR_CONTROL (+1)
-		ld	(hl), 8	; Смотрит вправо
-		ld	de, 0x10
-		add	hl, de	; ->ACTOR_TIMER (+17)
-		dec	(hl)	; Уменьшает время появления; ставит Z
+		call	mfd_pro		; CONTROL=8 (смотрит вправо), ACTOR_TIMER-1, A=B=ACTOR_TIMER, Z если вышел
 		jp	z, setMomiaViva
-		ld	a, (hl)	; A = ACTOR_TIMER
 		cp	3		; Скоро оживёт? (7/2 на 25 Гц)
 	jp c,momiaOpenLegs	; Показывает мумию с расставленными ногами
 
@@ -8622,11 +8538,8 @@ setMomiaViva:
 		call	setMomiaAndar
 
 momiaOpenLegs:
-		ld	hl, (z80_ix)	; NAT IX->HL
-		ld	de, 0x0B
-		add	hl, de	; ->ACTOR_FRAME (+11)
-		ld	(hl), 2	; Расставленные ноги
-		ret
+		ld	a, 2		; Расставленные ноги
+		jp	setMomiaFrame
 
 ;  [дедуп 2026-08-18] пролог и «вспышка исчезновения» общие с momiaDesaparece
 ;  (стояли дважды по ~29 Б). Z от dcr ACTOR_TIMER доживает до jp z в сайте
@@ -8816,9 +8729,7 @@ momiaDesaparece:
 
 quitaACTOR_:
 		call	quitaMomia	; Убирает спрайт с экрана и отправляет мумию в лимб (состояние 4)
-		ld	hl, (z80_ix)	; NAT IX->HL S1 quitaACTOR_
-		ld	de, 0x11
-		add	hl, de	; ->ACTOR_TIMER +17
+		call	getMomiaTimer	; HL -> ACTOR_TIMER (+17) мумии из z80_ix
 		ld	(hl), 0x0FF
 		call	initMomia
 		pop	hl
@@ -8904,9 +8815,7 @@ evitaSorpresa6:
 
 momiaDecide:
 		ld	a, 5
-		ld	hl, (z80_ix)	; NAT IX->HL S1
-		ld	de, 0x11
-		add	hl, de	; ->ACTOR_TIMER +17
+		call	getMomiaTimer	; HL -> ACTOR_TIMER (+17) мумии из z80_ix
 		ld	(hl), a
 
 		call	buscaCercanias	; Ищет поблизости лестницы вверх или вниз (5 тайлов в каждую сторону)
@@ -9535,9 +9444,8 @@ ajustaPasillo2:
 ;----------------------------------------------------
 
 doSalto:
-		ld	a, (controlPlayer)
-		add	a, a
-		jp	p, doSalto_once	; демо: один шаг, как запись 50 Гц
+		call	isPl
+		jp	z, doSalto_once	; демо: один шаг, как запись 50 Гц
 		ld	a, (GameStatus)
 		cp	0x0A		; концовка: один шаг, waitCounter=2 даёт прыжок ×4
 	jp z,doSalto_once
@@ -9693,10 +9601,9 @@ cayendo:
 		ld	a, (hl)		; Y
 		add	a, 4
 		ld	b, a
-		ld	a, (controlPlayer)
-		add	a, a
+		call	isPl
 		ld	a, b
-		jp	p, cayendo_a	; демо: +4, как запись 50 Гц
+		jp	z, cayendo_a	; демо: +4, как запись 50 Гц
 		add	a, 4		; игра: +8 = 4×2 на 25 Гц
 cayendo_a:
 		and	0x0FC
@@ -10499,7 +10406,7 @@ vec_sbcd:
 	ld	a, h
 	sbc	a, d
 	ld	h, a
-	jp	nz, vsbc_x	; старшая половина ненулевая -> Z уже верный, CY = заём
+	ret	nz		; старшая половина ненулевая -> Z уже верный, CY = заём
 	jp	c, vsbc_y
 	ld	a, l	; заёма нет: Z по младшей половине, CY гасим (or a)
 	or	a

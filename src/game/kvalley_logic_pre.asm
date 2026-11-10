@@ -27,7 +27,7 @@ getMomiaDat:
 		ld	(pMomiaProceso), hl
 		ld	(z80_ix), hl
 		ret
-gmd_tab:	dw	momiaDat, momiaDat+22, momiaDat+44, momiaDat+66
+;  gmd_tab — в vec_tables.asm сразу за vec_rev4 (одна страница гарантирована, см. там).
 
 ;  getMapOffset / getMapOffset00 — карта по координатам элемента.
 ;  In: HL = (Y, X дробная, X, комната); getMapOffset: B = смещение X (знаковое), C = смещение Y.
@@ -136,12 +136,48 @@ gmo_shift:
 		ld	a, (hl)
 		ret
 
-gmo_tab:
-	dw	MapaRAMRoot+0, MapaRAMRoot+96, MapaRAMRoot+192, MapaRAMRoot+288
-	dw	MapaRAMRoot+384, MapaRAMRoot+480, MapaRAMRoot+576, MapaRAMRoot+672
-	dw	MapaRAMRoot+768, MapaRAMRoot+864, MapaRAMRoot+960, MapaRAMRoot+1056
-	dw	MapaRAMRoot+1152, MapaRAMRoot+1248, MapaRAMRoot+1344, MapaRAMRoot+1440
-	dw	MapaRAMRoot+1536, MapaRAMRoot+1632, MapaRAMRoot+1728, MapaRAMRoot+1824
-	dw	MapaRAMRoot+1920, MapaRAMRoot+2016, MapaRAMRoot+2112, MapaRAMRoot+2208
-	dw	MapaRAMRoot+2304, MapaRAMRoot+2400, MapaRAMRoot+2496, MapaRAMRoot+2592
-	dw	MapaRAMRoot+2688, MapaRAMRoot+2784, MapaRAMRoot+2880, MapaRAMRoot+2976
+;  gmo_tab — в vec_tables.asm сразу за vec_rev4 (одна страница гарантирована, см. там).
+
+;  [demo-sync] Эти две процедуры стоят ЗДЕСЬ (pre-align), чтобы занять зазор, освобождённый правками демо; вызывают их
+;  и хвост (vec_jumpmid.asm), и логика.
+;  isPl: Z = демо (controlPlayer бит 6 = 0, шаг как на 50 Гц), NZ = игрок. Портит A.
+isPl:
+		ld	a, (controlPlayer)
+		and	0x40
+		ret
+;  bajaSnap: игрок — дробь X в 0 и X в центр тайла (точка схода); демо — как оригинал, ничего. Вход/выход HL -> Y.
+bajaSnap:
+		call	isPl
+		ret	z
+		inc	hl
+		xor	a
+		ld	(hl), a
+		inc	hl
+		ld	a, (hl)
+		and	0xF8
+		or	4
+		ld	(hl), a
+		dec	hl
+		dec	hl
+		ret
+;  getMomiaTimer: HL = (z80_ix) + ACTOR_TIMER. Портит DE, CY. Шесть мест держали по 7 Б (ld hl,(z80_ix) / ld de,17 / add hl,de).
+getMomiaTimer:
+		ld	hl, (z80_ix)
+		ld	de, ACTOR_TIMER
+		add	hl, de
+		ret
+
+;  demoRun: тик 25 Гц = два тика 50 Гц оригинала. Демо записано по тикам оригинала (20 мс), и с одним тиком оригинала на тик порта
+;  (51 мс при загрузке кадра) оно шло в 2.5 раза дольше оригинала. Второй тик — без отрисовки (tickGame3), её делает следующий тик.
+demoRun:
+		call	runGame
+		call	isPl
+		ret	nz
+		ld	a, (GameStatus)
+		cp	5
+		ret	nz
+		ld	hl, timer
+		inc	(hl)
+		call	chkControls
+		call	tickGame3
+		jp	chkVivo

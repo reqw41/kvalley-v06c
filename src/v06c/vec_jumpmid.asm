@@ -47,12 +47,9 @@ saltoMidP:
 ;  Демо (controlPlayer bit6=0) идёт как на 50 Гц: гейт по timer сохранён, шаг тот же.
 ;  A=0 на входе в setProtaAndar (в оригинале он приходит с `and 1`).
 protaGirMid:
-		ld	a, (controlPlayer)
-		and	0x40
-		jp	nz, protaGirGo	; игрок: каждый тик
-		ld	a, (timer)
-		and	1
-		ret	nz		; демо: каждый второй кадр
+		ld	a, 1
+		call	tmrAnd		; игрок: каждый тик (маска 0), демо: каждый второй кадр
+		ret	nz
 protaGirGo:
 		xor	a
 		ld	hl, accionWaitCnt
@@ -67,15 +64,8 @@ protaGirGo:
 ;  игрок &3 (4 тика = 8 кадров), демо (controlPlayer бит 6 = 0) идёт как на 50 Гц и сохраняет &7.
 ;  E свободен: DE пишется ниже по ходу (ld de,tilesGiroDoor), B/A перетираются.
 spinGate:
-		ld	a, (controlPlayer)
-		and	0x40
-		ld	a, 3
-		jp	nz, spinGate1
 		ld	a, 7
-spinGate1:
-		ld	e, a
-		ld	a, (timer)
-		and	e
+		call	tmrAnd		; игрок 7>>1 = 3, демо 7
 		ret	nz
 		jp	spiningDoors3b
 
@@ -85,8 +75,7 @@ spinGate1:
 tmrAnd:
 		push	bc
 		ld	b, a
-		ld	a, (controlPlayer)
-		and	0x40
+		call	isPl
 		ld	a, b
 		jp	z, tmrAnd1
 		or	a
@@ -107,8 +96,7 @@ protaPica2:
 		ld	hl, protaPicando
 		ld	c, 5
 protaX2:
-		ld	a, (controlPlayer)
-		and	0x40
+		call	isPl
 		jp	z, protaX2j
 		push	bc
 		push	hl
@@ -124,8 +112,7 @@ protaX2j:
 ;  goGate: HL = &timer; NZ = обрабатывать (игрок всегда, демо — при нечётном timer, как `and 1` оригинала).
 goGate:
 		ld	hl, timer
-		ld	a, (controlPlayer)
-		and	0x40
+		call	isPl
 		ret	nz
 		ld	a, (hl)
 		and	1
@@ -133,11 +120,37 @@ goGate:
 
 ;  tmrSpr: A = (timer & 0x0C) для демо, ((timer*2) & 0x0C) для игрока: кадр вращения ножа меняется раз в 4 кадра оригинала.
 tmrSpr:
-		ld	a, (controlPlayer)
-		and	0x40
+		call	isPl
 		ld	a, (timer)
 		jp	z, tmrSpr1
 		add	a, a
 tmrSpr1:
 		and	0x0C
 		ret
+
+;  [demo-sync] Демо идёт тиками 50 Гц оригинала (маршрут записан по ним), и эти места обязаны вести себя как
+;  оригинал; игрок на 25 Гц сохраняет правки 593b50b. Без этого демо с 20.09 уходило с маршрута MSX.
+;  bajaWinX: вход A = X&7 != 4. Выход C = сход нельзя. Оригинал и демо: только X&7==4; игрок: 3..5 (шаг ×2 минует 4).
+bajaWinX:
+		ld	b, a
+		call	isPl
+		scf
+		ret	z
+		ld	a, b
+		sub	6
+		cp	0xFD		; A-6 >= 0xFD  <=>  A = 3..5; C = негоден
+		ret
+;  Мумия в лимбе / облаке: обработчики считают под тик 25 Гц (декремент раз в 2 кадра, облако 0x41 тиков).
+;  В демо тик = кадр 50 Гц, поэтому они идут через кадр (чётный timer, как `and 1` оригинала).
+momiaLimboW:
+		ld	a, 1
+		call	tmrAnd
+		jp	z, momiaLimbo
+		pop	hl
+		jp	chkLastMomia
+momiaAparW:
+		ld	a, 1
+		call	tmrAnd
+		ret	nz
+		jp	momiaAparece
+

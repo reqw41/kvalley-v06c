@@ -27,6 +27,9 @@ vsn_dirty:	equ	0x7EC5	; 1 Б: 1 = чип заглушен hush'ем, следу�
 ;  Заглушённый hush'ем чип (вход в паузу: шапка ISR тикает и на паузе) оживал уже следующим тиком. Сохраняем:
 ;  после hush первый тик пересылает чипу vwant.
 updateSound:
+	ld	a, (vnz_dly)	; [кирка] шумит -> вспышка бит шума в тике (vec_pick.asm)
+	or	a
+	call	nz, vnz_burst
 	ld	a, (vsn_dirty)
 	or	a
 	call	nz, vsn_resync
@@ -81,6 +84,8 @@ vpl_t:
 	jp	z, vpl_dw	; 5: DW
 	dec	a
 	jp	z, vpl_per	; 6: PERIOD
+	dec	a
+	jp	nz, vpl_nz	; 8: NZ n — шум кирки (vec_pick.asm)
 ;  7: FALL — падение: делитель += 108 (P += 8), канал включён, сон 1 тик, указатель остаётся на FALL.
 	dec	hl
 	push	hl
@@ -245,6 +250,7 @@ vw_addr:
 ;  каналы, 1 — только канал 3 (эффекты), 2 — тишина. Не включённый в чипе канал получает управляющее
 ;  слово (канал 3 — через аренду часов, vtm_grab), затем делитель.
 vc_on:
+	call	vnz_stop	; [кирка] нота на канале 3 снимает шум и заново берёт канал в режим 3
 	ld	a, (vec_snd_mode)
 	or	a
 	jp	z, vco_go
@@ -253,6 +259,9 @@ vc_on:
 	ld	a, c
 	cp	2
 	ret	nz
+	ld	a, (musicCh3)	; [mummy-zx-a] «музыка выкл»: канал 3 — только под эффект (ID < 11); партия трёхканальной
+	cp	0x0B	; мелодии на нём молчит вместе с каналами 1-2 (жалоба: «выключается один канал»)
+	ret	nc
 vco_go:
 	call	vw_addr
 	inc	hl
@@ -298,6 +307,8 @@ vco_p1:	ld	a, e
 
 ;  Канал C ВЫКЛЮЧИТЬ, если он включён в чипе. Канал 3 возвращается часам (vtm_start).
 vc_off:
+	call	vnz_off	; [кирка] выключение канала 3 снимает шум; NZ — канал часам вернёт цикл простоя
+	ret	nz
 	ld	hl, vec_vch
 	ld	b, 0
 	add	hl, bc
@@ -362,6 +373,7 @@ vec_snd_hush:
 	ld	(vec_vch+1), a
 	ld	(vec_vch+2), a
 	ld	(vtm_have), a
+	ld	(vnz_dly), a	; [кирка] глушение снимает и шум
 	inc	a
 	ld	(vsn_dirty), a
 	pop	hl
@@ -403,6 +415,11 @@ setMus:	ld	a, (hl)
 	add	a, a
 	ld	de, vsn_tab-2
 	call	ADD_A_DE	; DE = слово потока первого голоса
+	ld	a, c	; [кирка] звук 5 — поток с шумом (vec_pick.asm) вместо снятого с драйвера в режиме ВИ53
+	cp	5
+	jp	nz, setMus5
+	ld	de, vnz_ptab
+setMus5:
 	dec	hl
 	dec	hl		; HL = ячейка голоса (+0)
 setChanData:

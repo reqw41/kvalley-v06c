@@ -14,6 +14,8 @@ vec_su_ptr:
 ;  хайджек, ЗАПРЕТ call/push внутри, SP восстановить на всех путях, ei-протокол vbt_row
 ;  (vec_isr_depth!=0 -> остаёмся DI, ei сделает эпилог ISR).
 vec_su_restore:
+	call	vxm_is	; [mummy-zx A] XOR-враг: «восстановить» = стереть XOR-ом
+	jp	c, vxm_rs
 	ld	hl, vsu_rcol	; ОПЕРАНД общего хвоста плоскостей (vsu_np): сюда возвращаться
 	ld	(vsu_npj+1), hl
 	ld	(vsu_colj+1), hl	; и ОПЕРАНД конца столбца общего тела (vsu_body)
@@ -335,12 +337,25 @@ vec_scan_keys:
 	or	c
 	cpl	; обратно в active-low MSX
 	ld	(vec_kb8), a
-	ld	a, 0x0BF	; ряд 6: S / P
+;  [mummy-zx] КЛАВИШИ ШАГА ПО СХЕМЕ MONTY / BRUCE LEE (было: ряд 6, P = пауза, S = режим звука).
+;  vec_kbs, active-high: 0x04 = ВК (ряд 0 бит 2, он уже в B), 0x08 = АР2 (ряд 1 бит 2),
+;  0x40 = УС (порт 01 бит 6 — верх порта C ППИ1, читается без выбора ряда).
+	ld	a, 0x0FD	; ряд 1: АР2
 	out	(0x03), a
 	in	a, (0x02)
 	in	a, (0x02)
 	cpl
-	and	0x09
+	and	0x04
+	rlca		; АР2 -> 0x08
+	ld	c, a
+	ld	a, b	; ряд 0: ВК = 0x04
+	and	0x04
+	or	c
+	ld	c, a
+	in	a, (0x01)	; УС
+	cpl
+	and	0x40
+	or	c
 	ld	(vec_kbs), a
 	call	vec_cheat_scan	; F1+F3 на титуле; игровые читы только при открытом замке
 	ld	a, (vec_vs_cur)	; ПОРТ 3 = ЕЩЁ И HW VSCROLL! текущее положение (лого Konami двигает)

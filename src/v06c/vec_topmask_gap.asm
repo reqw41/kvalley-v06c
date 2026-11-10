@@ -427,6 +427,8 @@ vmh_no:
 	ret
 ;  хвост vsp_hidep (outlist): снять хвост списка и обновить prev.
 vsp_hdrop:
+	call	vxm_is	; [mummy-zx шаг 1] XOR-враг не в списке: метка остаётся, vxm_all сам сделает
+	ret	c	; «стирать нечего» и обновит prev
 	ld	hl, vsp_n
 	dec	(hl)
 	jp	vso_prev
