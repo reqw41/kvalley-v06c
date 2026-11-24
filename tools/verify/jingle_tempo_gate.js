@@ -56,9 +56,9 @@ const KEY_SPACE = 32, KEY_D = 68, KEY_F1 = 112, KEY_F3 = 114;
 
 function session(noAy) {
   const E = make(rom, sym);
-  const { L, rd, v06c, cpu, key } = E;
+  const { L, rd, v06c, cpu, key, memory } = E;
 	for (const n of ["updateSound", "PlayIntroMusic", "GameStatus", "musicCh1", "musicCh2",
-                   "vec_snd_mode", "vtm_have", "Vidas"])
+                   "vec_snd_mode", "vtm_have", "Vidas", "flagVivo"])
     if (L[n] === undefined) throw new Error(`в .sym нет метки ${n}`);
   // Конфигурация «голый Вектор»: чипа AY нет — чтение отдаёт 0xFF, запись в пустоту.
   // Проба на буте не отвечает -> vec_snd_chip=1 (ВИ53).
@@ -66,8 +66,18 @@ function session(noAy) {
 
   const US = L.updateSound, PIM = L.PlayIntroMusic;
   let ticks = 0, started = false;
+  // [memory-for-speed] Чита D больше нет. «Умереть сейчас» — штатным путём касания мумии: на проверке «мумия в комнате
+  // героя?» (последний `jp nz,chkLastACTOR_` перед `jp c,momiaMataProta`, адрес из .lst) PC уводится в momiaMataProta —
+  // стек тот же, что у `jp c` (это jp, не call); vec_god=0, значит vkp_kill: музыка гибели + flagVivo=0.
+  const lst = require("fs").readFileSync(rom.replace(/\.rom$/, ".lst"), "utf8").split("\n");
+  const iMM = lst.findIndex(x => /jp c,momiaMataProta/.test(x));
+  let KILL_AT = -1;
+  for (let i = iMM; i >= 0 && KILL_AT < 0; i--) { const m = /^\S+\s+([0-9A-F]{4}) C2 .*jp nz,chkLastACTOR_/.exec(lst[i]); if (m) KILL_AT = parseInt(m[1], 16); }
+  if (iMM < 0 || KILL_AT < 0 || L.momiaMataProta === undefined) throw new Error("в .lst/.sym не найдена точка гибели от мумии");
+  let wantKill = false;
   v06c.check_breakpoint = function () {
     if (cpu.pc === US) ticks++; else if (cpu.pc === PIM) started = true;
+    else if (wantKill && cpu.pc === KILL_AT) { wantKill = false; cpu.pc = L.momiaMataProta; }
     return false;
   };
   const step = () => v06c.oneInterrupt(true);
@@ -79,7 +89,7 @@ function session(noAy) {
     if (!waitGS(1, 4000)) return { err: `${tag}: титул (GameStatus=1) не наступил за 4000 кадров` };
     runN(20);
     started = false;
-    key(KEY_F1, 1); key(KEY_F3, 1); runN(12); key(KEY_F1, 0); key(KEY_F3, 0);
+    key(KEY_SPACE, 1); runN(12); key(KEY_SPACE, 0);	// [memory-for-speed] читы сняты: старт пробелом
     let w = 0;
     while (!started && w < 200) { step(); w++; }
     if (!started) return { err: `${tag}: PlayIntroMusic не достигнут — джингл не заводился` };
@@ -97,12 +107,14 @@ function session(noAy) {
   }
 
   const one = jingle("партия №1");
-  // Добить партию читом D (замок открыт: партия запущена F1+F3) до game over и вернуться
+  // Добить партию до game over и вернуться
   // на титул. Естественный путь — тот же, что у владельца: game over -> титул -> старт.
   for (let k = 0; k < 12; k++) {
     if ([7, 0, 1].includes(rd(L.GameStatus))) break;
-    press(KEY_D, 6); runN(30);
-    for (let i = 0; i < 600; i++) { step(); if ([5, 0, 1, 7].includes(rd(L.GameStatus))) break; }
+    wantKill = rd(L.GameStatus) === 5;
+    for (let i = 0; i < 1500 && rd(L.GameStatus) === 5; i++) step();	// гибель уводит из GS5
+    wantKill = false;
+    for (let i = 0; i < 1500; i++) { step(); if ([5, 0, 1, 7].includes(rd(L.GameStatus))) break; }
     runN(60);
     if ([0, 1].includes(rd(L.GameStatus))) break;
   }
@@ -132,7 +144,7 @@ for (const [name, s] of NO_AY_BUILD ? [["ВИ53", VI]] : [["AY", AY], ["ВИ53",
 }
 if (bad.length) { console.log("ПРОВАЛ (выборка):\n  " + bad.join("\n  ")); process.exit(1); }
 
-console.log(`  жизней после серии читом D: AY ${AY.vidas}, ВИ53 ${VI.vidas} (0 = партия действительно кончилась)`);
+console.log(`  жизней после серии гибелей: AY ${AY.vidas}, ВИ53 ${VI.vidas} (0 = партия действительно кончилась)`);
 if (AY.vidas !== 0 || VI.vidas !== 0) bad.push("вторая партия начата НЕ после game over — сценарий не тот");
 
 for (const [name, s] of NO_AY_BUILD ? [["ВИ53", VI]] : [["AY", AY], ["ВИ53", VI]]) {

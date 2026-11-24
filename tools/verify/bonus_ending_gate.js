@@ -154,18 +154,18 @@ for(const l of fs.readFileSync(symfile,"latin1").split("\n")){
 for(const n of ["GameStatus","subStatus","timer","flagPiramideMap","piramideActual",
                 "vbt8_ecp","vbt8_ecj","vbt8_brick","vec_end_tile"])
   if(L[n]===undefined){ console.log(`❌ в ${symfile} нет символа ${n}`); process.exit(1); }
-if(L.vec_hop===undefined){
-  console.log(`ROM: ${rom}`);
-  console.log("читов в сборке нет — проверять нечего (блок снят 050301b: нет vec_hop и клавиши E; штатный финал — после 15 пирамид; версия с читами: git revert 050301b && ./build.sh)");
-  console.log("РЕЗУЛЬТАТ: SKIP");
-  process.exit(0);
-}
+//  [ending-fix 24.11.2026] Читов в сборке нет: финал включается записью в память — ровно то, что делал чит
+//  «показать финал» (ld a,0x0A / jp setGameStatus: GameStatus=10, waitCounter=0x20, subStatus=0).
 const rd=a=>memory.read(a&0xffff);
 const run=n=>{for(let i=0;i<n;i++) v06c.oneInterrupt(true);};
 const key=(code,down)=>{const e={keyCode:code,which:code,preventDefault(){},stopPropagation(){}};
   if(down) keyboard.keyDown(e); else keyboard.keyUp(e);};
+//  [ending-fix] sub1Frames — сколько видеокадров финал стоял в фазе 1 (ShowEnding: копия героя + указатель команд).
+//  Это один тик; без `jp NextSubStatus` (снят в c5a6436) код проваливался в controlsEnding и rst 38h, фаза 1
+//  крутилась ~29 кадров с повторным входом в ISR — в Emu80 «герой прыгает сразу» и мусор у двери.
+let sub1Frames=0;
 const runTicks=n=>{ let last=rd(L.timer),c=0,guard=0;
-  while(c<n && guard++<n*40){ run(1); const t=rd(L.timer); if(t!==last){last=t;c++;} } };
+  while(c<n && guard++<n*40){ run(1); if(rd(L.GameStatus)===0x0A && rd(L.subStatus)===1) sub1Frames++; const t=rd(L.timer); if(t!==last){last=t;c++;} } };
 
 // ---- PNG: тот же кодек, что у screens_palette_check.js (8 бит, truecolor, фильтр 0) ----
 const crcT=(()=>{const t=[];for(let n=0;n<256;n++){let c=n;for(let k=0;k<8;k++)c=c&1?0xEDB88320^(c>>>1):c>>>1;t[n]=c;}return t;})();
@@ -210,21 +210,21 @@ console.log(`ROM: ${rom}`);
 //  читом E, а с обычного старта пробелом vec_cheats=0 и чит мёртв по замыслу.
 //  Пробел здесь не нажимается ни разу — F1+F3 запускают партию сами.
 let inGame=false;
-key(112,true); key(114,true);
+key(32,true);
 for(let blk=0; blk<60 && !inGame; blk++){
   for(let f=0; f<25; f++){ run(1);
     if(rd(L.GameStatus)===5 && (rd(L.flagPiramideMap)&1)){ inGame=true; break; } }
 }
-key(112,false); key(114,false); run(4);
+key(32,false); run(4);
 if(!inGame){ console.log("❌ GATE FAIL: не удалось дойти до геймплея (сценарий кнопки старта сломан)"); process.exit(1); }
 runTicks(40);
 console.log(`геймплей: GS=${rd(L.GameStatus)} пирамида=${rd(L.piramideActual)}`);
 
 // 2. ЧИТ: клавиша E -> финальный экран. Заодно это проверка самого чита.
-key(69,true); run(6); key(69,false); run(4);
+memory.write(L.GameStatus,0x0A); memory.write(L.waitCounter,0x20); memory.write(L.subStatus,0); run(4);
 if(rd(L.GameStatus)!==0x0A){
-  console.log(`❌ GATE FAIL: после нажатия E GameStatus=${rd(L.GameStatus)}, ожидался 10 (FinalJuego).`);
-  console.log("   Чит «показать финал» не сработал — см. vec_isr.asm (vec_kbe) и vec_scan_keys (ряд 4).");
+  console.log(`❌ GATE FAIL: после записи GameStatus=10 в памяти GameStatus=${rd(L.GameStatus)} (FinalJuego не принят).`);
+  
   process.exit(1);
 }
 if(rd(L.subStatus)!==0){
@@ -232,7 +232,7 @@ if(rd(L.subStatus)!==0){
   console.log("   С ненулевого подстатуса >=6 сцена перестраивается вечно, концовка не проигрывается.");
   process.exit(1);
 }
-console.log("чит E: GameStatus=10 (FinalJuego), subStatus=0 — ок");
+console.log("финал (запись в память): GameStatus=10 (FinalJuego), subStatus=0 — ок");
 // ПАТЧ БЛИТТЕРА. Тайлы 0x40-0x47 в концовке — грани пирамид/пол/звёзды, а в лабиринте те
 // же номера = кирпич. vec_ct_ending расширяет диапазон 5 -> 8 и уводит его на свой
 // обработчик (см. vbt8_ecp/vbt8_ecj в vec_blit.asm). Без патча вся сцена красится как
@@ -242,11 +242,13 @@ const patch=()=>[rd(L.vbt8_ecp+1), rd(L.vbt8_ecj+1)|(rd(L.vbt8_ecj+2)<<8)];
 
 // 3. фазы постройки сцены. Отсчёт — В ИГРОВЫХ ТИКАХ от момента входа в концовку.
 const phases = [
-  ["1_scene",   10, "сцена построена: полупирамиды, дверь, звёзды, пол, табло"],
-  ["2_door",    45, "герой вышел из двери большой пирамиды"],
-  ["3_walk",   120, "герой идёт влево по песку"],
-  ["4_jump",   175, "прыжок в центре экрана"],
-  ["5_bonus",  220, "CONGRATULATIONS + SPECIAL BONUS 10000 (+10000 очков и жизнь)"],
+  //  [ending-fix] тики 25 Гц логики (hx17): выход из двери 1, ходьба 1..83, прыжок 83..95, бонус 96.
+  //  Прежние 10/45/120/175/220 — эпоха 50 Гц: при них «бонус к 120-му тику» и прыжок у двери не отличались от нормы.
+  ["1_scene",    5, "сцена построена: полупирамиды, дверь, звёзды, пол, табло; герой в двери"],
+  ["2_door",    15, "герой вышел из двери большой пирамиды"],
+  ["3_walk",    50, "герой идёт влево по песку"],
+  ["4_jump",    88, "прыжок в центре экрана"],
+  ["5_bonus",  110, "CONGRATULATIONS + SPECIAL BONUS 10000 (+10000 очков и жизнь)"],
 ];
 const hex=c=>((c>>>0)&0xFFFFFF).toString(16).padStart(6,"0");
 function planeStats(){ // диагностика: гистограмма индексов палитры по видимым планам
@@ -256,6 +258,7 @@ function planeStats(){ // диагностика: гистограмма инд�
   return cnt;
 }
 let done=0, fails=[];
+const SUB1_MAX=4;
 for(const [name,upto,what] of phases){
   runTicks(upto-done); done=upto;
   const rgb=frameRGB();
@@ -310,7 +313,9 @@ else console.log(`после концовки игра живёт: GS=${rd(L.Gam
     fails.push("патч"); }
   else console.log("патч тайлов концовки снят возвратом в этап — ок"); }
 
+if(sub1Frames>SUB1_MAX){ console.log(`❌ фаза 1 финала (ShowEnding) стояла ${sub1Frames} кадров (норма <= ${SUB1_MAX}): нет выхода jp NextSubStatus — провал в controlsEnding/rst 38h`); fails.push("фаза1"); }
+else console.log(`фаза 1 финала: ${sub1Frames} кадров — ок`);
 console.log(fails.length===0
-  ? "\n✅ GATE PASS: чит E открывает финальный экран, все фазы совпали с эталонами, концовка доигрывается и возвращает игру в Stage Clear"
+  ? "\n✅ GATE PASS: финальный экран (запись в память), все фазы совпали с эталонами, концовка доигрывается и возвращает игру в Stage Clear"
   : `\n❌ GATE FAIL: ${fails.join(", ")}`);
 process.exit(fails.length===0 ? 0 : 1);

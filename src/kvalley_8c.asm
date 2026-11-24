@@ -43,7 +43,7 @@
 ;  Выровненные таблицы — ПОСЛЕДНИМИ: тогда align-зазор оказывается в конце кода и его
 ;  можно использовать под перенос процедур, а не терять в середине образа.
 	.include "v06c/vec_topmask_gap.asm"
-	.include "gen/vec_hoptab.asm"
+; [memory-for-speed] vec_hoptab (таблица дверей чита N) снята вместе с читами
 	.include "v06c/vec_repair.asm"	; [mummy-zx] до .align: за ним место заняли gmo_tab/gmd_tab
 	.include "v06c/vec_keys.asm"
 	.include "v06c/vec_xmum.asm"

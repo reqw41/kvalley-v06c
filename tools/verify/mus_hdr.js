@@ -5,7 +5,7 @@ const E = BH.make(process.argv[3], process.argv[4]);
 const { cpu, L, rd, run, v06c } = E;
 let T = 0, t0 = null; const vals = [];
 v06c.check_breakpoint = function () { T += cpu.vcycles || 0; if (cpu.pc === 0x38) t0 = T; if (cpu.pc === L.vso_fix && t0 !== null) { vals.push(T - t0); t0 = null; } return false; };
-run(400); E.key(112, 1); E.key(114, 1);
+run(400); E.key(32, 1);
 for (let i = 0; i < 640 && rd(L.GameStatus) !== 5; i++) run(1);
 E.key(112, 0); E.key(114, 0); run(2500);
 vals.sort((a, b) => a - b); const q = p => vals[Math.floor(p * vals.length)];

@@ -285,48 +285,66 @@ vsu_scwr:
 ;  vop_i1 ставится ТОЛЬКО когда пару готовили в этом тике. Бюджет подготовки =
 ;  2 слота = сама пара, поэтому тик одной мумии оставляет vop_i1=0, а её ANDN
 ;  уже выбил одежду (hero_overlap_gate: слот 7, 27/28 байт; комок PAT=8 — 15/28).
-vtm_hrd:
-	ld	e, 0	; под створкой (слоты 0-3) героя НЕ кладём сверху —
-	ld	a, 4	; на MSX створка 0-3 накрывает пару 4-5. Иначе idx2
-	call	vhr_ovl	; одежды просвечивает (door_leaf_purity).
-	ret	nz
-	ld	e, 6	; мумия 6-13: героя НАД ней (комок возрождения).
-	ld	a, 14	; vop_i1 сюда больше не входит: он же взводится, когда
-	call	vhr_ovl	; «чужой фон» — сама створка, и пара снова поверх листа.
-	ret	z
-;  Герой поверх ворот входа/выхода: одежда (4) и кожа (5). Вход vss_or — без маски
-;  vop_i1 и без повторного leaf. ncols=0 -> слот пуст. Индекс вызывающего возвращаем
-;  (из пачки это створка — иначе vso_prev пишет prev героя).
-;  Гашение p1 створки — в vss_or (слот 4): иначе пачка без этого хвоста оставляет idx6.
-vec_hero_redraw:
-	ld	hl, vec_nsp_idx
-	ld	a, (hl)
-	push	af
-	ld	(hl), 4
-	call	vhr_one
-	ld	a, 5
-	ld	(vec_nsp_idx), a
-	call	vhr_one
-	pop	af
-	ld	(vec_nsp_idx), a
-	ret
-vhr_one:
-	ld	a, (vec_nsp_idx)
-	add	a, 0x0E0
-	ld	h, a
-	ld	l, 0x96	; ГЕЙТ pending!=2 (как в vso_sdone): после стирающей пачки (hide/
-	ld	a, (hl)	; смерть/скролл) запись вывода протухла, а vop_i1 при скрытой паре
-	cp	2	; не обнуляется — без гейта vtm_hrd рисовал ПРИЗРАК пары по стёртому
-	ret	z	; экрану. pending=3 (дедуп AURA) рисовать ОБЯЗАН — только 2 молчит.
-	ld	l, 0x99
-	ld	b, (hl)
-	ld	a, b
-	or	a
-	ret	z
-	ld	l, 0x98
-	ld	a, (hl)
-	ld	(vsb_lo), a
-	jp	vss_or
+;  [hero-xor] vtm_hrd / vec_hero_redraw сняты: пара XOR-путём, перерисовка поверх мумии портила XOR мумии.
+;  [hero-xor] хвост vxw (vec_xmum.asm): D = min lo, E = max lo, H = страница слота. Кожа (5) не ждёт: окно одежды (4)
+;  взято на обе половины (C вдвое), иначе ожидание между половинами рвало героя. Верх габарита клампится к fb 255
+;  (как vbw_g3); окно длиннее 48 строк (перевал через край) — не ждём. A может уйти ниже нуля — доводит vbw_a0.
+vxw2x:
+	ld	a, h
+	cp	0x0E5
+	jp	nz, vxw2y
+	ld	a, (0x0E4E0)	; кожа: одежда отложена (метка цела) — отложить и кожу, иначе не ждём
+	dec	a
+	ld	hl, vbw_np
+	and	(hl)
+	ld	(hl), a
+	jp	vbw_out
+vxw2y:
+	ld	bc, VXW_C
+	cp	0x0E4
+	jp	nz, vxw3
+	ld	bc, 8000	; одежда + кожа подряд (~14 тыс. т = 7 тыс. отсчётов) + обвязка; замер верха поля: 6400 -> 5,0 %, 8000 -> 3,1 %, 10000 -> 3,1 %
+vxw3:
+	push	bc
+	ld	a, e
+	add	a, 15
+	jp	nc, vxw4
+	ld	a, 255
+vxw4:
+	ld	b, a
+	ld	a, vec_vscroll
+	sub	b
+	ld	c, a	; C = rmin
+	ld	a, vec_vscroll
+	sub	d
+	sub	c
+	jp	c, vxw_o
+	inc	a
+	cp	48
+	jp	nc, vxw_o
+	call	vbw_x96
+	pop	de
+	push	de
+	add	hl, de
+	ld	de, 2*VBW_M
+	add	hl, de
+	ld	(vbw_len), hl	; Len = 96n + 2M + C
+	ld	a, c
+	call	vbw_x96
+	ld	de, VBW_T0-VBW_M
+	add	hl, de
+	pop	de
+	ld	a, l
+	sub	e
+	ld	e, a
+	ld	a, h
+	sbc	a, d
+	ld	d, a	; DE = T0 - M + 96*rmin - C
+	jp	nc, vbw_a1
+	jp	vbw_a0
+vxw_o:
+	pop	bc
+	jp	vbw_out
 ;  NZ, если габарит слота 4 пересекается со слотами E..A (ncols!=0, A не включая).
 ;  pending не смотрим: после hide он уже 2, а дыры в fb остаются. Стек, не vom_*
 ;  и не self-mod: пачка зовётся с вложенного ISR посреди vom_check / vhr_ovl.

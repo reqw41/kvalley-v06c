@@ -10,7 +10,7 @@ BH.make=function(...a){const E=make0(...a);const {v06c,cpu,L,rd}=E;
    if(cpu.pc===L.updateSound&&g.cur!==null&&rd16(cpu.sp)===L.vsp_out){const k=g.cur+(rd(L.vbw_busy)?"P":"T");g.ticks[k]=(g.ticks[k]||0)+1;}
    return cb.apply(this,arguments);};},set(f){cb=f;},configurable:true});
  return E;};
-BH.toGame=function(E){const {run,key,rd,L}=E;run(400);key(112,1);key(114,1);for(let i=0;i<640&&rd(L.GameStatus)!==5;i++)run(1);key(112,0);key(114,0);for(let i=0;i<4000&&rd(L.GameStatus)!==5;i++)run(1);return rd(L.GameStatus);};
+BH.toGame=function(E){const {run,key,rd,L}=E;run(400);key(32, 1);for(let i=0;i<640&&rd(L.GameStatus)!==5;i++)run(1);key(32, 0);for(let i=0;i<4000&&rd(L.GameStatus)!==5;i++)run(1);return rd(L.GameStatus);};
 const {runScenario}=require(TV+"/lo_lib.js");const {scenarios}=require(TV+"/lo_scen.js");
 const nm=a=>{let b=null;for(const [n,v] of Object.entries(G.L)) if(!/^[A-Z0-9_]+$/.test(n)&&v<=a&&v>=0x100&&v<0x7600&&(!b||v>b[1])) b=[n,v]; return b?b[0]+"+"+(a-b[1]):a.toString(16);};
 for(const n of process.argv.slice(5)){const s=scenarios().find(x=>x.name===n);G=null;runScenario(process.argv[3],process.argv[4],s,{snap:false});

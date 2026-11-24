@@ -166,7 +166,7 @@ vsp_nomask:
 	xor	a
 vsp_hwc:
 	ld	(vsu_hic), a
-	call	vsp_pat	; выбор паттерна + сборка сдвинутого спрайта в буфер
+	call	vsp_patx	; [memory-for-speed] мумия со сдвигом 2..7 — из таблицы предсдвигов (vec_bw.asm), иначе vsp_pat
 	call	vclp	; ЗАДАЧА#56: жёсткое отсечение габарита сверху (см. ниже)
 ;  СУЖЕНИЕ FOOTPRINT'А: 3-й столбец буфера часто ПУСТ (у спрайта уже нет битов, которые
 ;  сдвиг вынес бы так далеко). Тогда объекту хватает 2 столбцов — и вывод, и сохранение
@@ -2144,7 +2144,7 @@ vso_adv:
 ;  с fb → two_mum_jump_resid / hero_width / opaque_composite красные.
 	ld	a, (vpr_sl)
 	cp	2
-	jp	nz, vtm_hrd	; [V1] снять пробовали: hud_junk_gate (мумия в точке героя у верхней строки) краснеет
+	ret	nz	; [hero-xor] было jp nz, vtm_hrd — при XOR-герое там только ret. [V1] снять пробовали: hud_junk_gate (мумия в точке героя у верхней строки) краснеет
 	ld	e, 0
 	ld	a, 4
 	call	vhr_ovl
@@ -2342,7 +2342,7 @@ vmxp:
 	ld	(vpz_ok), a
 	ld	a, vpr_pa&255	; --- ПАРА: подготовить ОБОИХ, запись отложить ---
 	ld	(vpr_def), a
-	ld	a, (vmx_w)
+	ld	a, (vmx_w)	; [hero-xor] бывший vsm_pqs: первая половина пары -> vec_nsp_idx (как ждёт vso_merge1)
 	call	vso_setord
 	call	vso_merge1
 	ld	a, vpr_pb&255
@@ -2671,41 +2671,7 @@ vpr_wr:
 	cp	240
 	jp	c, vpz_pair	; PUSH в fb не пересекает адрес 0
 vpr_or:
-	ld	a, (vpr_pa)
-	ld	h, a
-	ld	d, a
-	ld	l, 6	; смещения столбца в слоте: фон 6+16c, спрайт 0xA0+16c —
-	ld	e, 0x0A0	; У ОБОИХ ОДНИ И ТЕ ЖЕ (это условие пары), поэтому L и E
-vpr_c:		; не перезагружаются, а идут через возврат из vsb_mcol
-	ld	a, (vpr_ha)
-	ld	b, a	; страница fb столбца первого
-	inc	a
-	ld	(vpr_ha), a
-vpr_ka:
-	call	vsb_mcol	; ОПЕРАНД (ЗАДАЧА#49): vsb_mcol / vsz_mcol при нулевом фоне
-	ld	a, l	; тот же столбец, но второму объекту
-	sub	16
-	ld	l, a
-	ld	a, e
-	sub	16
-	ld	e, a
-	ld	a, (vpr_pb)
-	ld	h, a
-	ld	d, a
-	ld	a, (vpr_hb)
-	ld	b, a
-	inc	a
-	ld	(vpr_hb), a
-vpr_kb:
-	call	vsb_mcol	; ОПЕРАНД (ЗАДАЧА#49); L,E ушли на СЛЕДУЮЩИЙ столбец — как и надо
-	ld	a, (vpr_pa)
-	ld	h, a
-	ld	d, a
-	ld	a, (vsb_nc)
-	dec	a
-	ld	(vsb_nc), a
-	jp	nz, vpr_c
-	ret
+	jp	vpr_or2	; [flicker-kv2] ядро — в vec_bw.asm (за .align места нет)
 
 ;  vso_static: A = 1, если объект vec_nsp_idx — СТВОРКА ВОРОТ (слоты 0-3), её слот валиден
 ;  и габарит СОВПАЛ с записью вывода, то есть створка НЕ ДВИГАЛАСЬ. Иначе A = 0. Клоб A,H,L.

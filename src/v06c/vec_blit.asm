@@ -206,8 +206,7 @@ vfx_b1:
 	ld	(vfr_need), a	; ЗАДАЧА#54: спрайт этого слота стёрт блитом — перерисовать
 	pop	hl
 	ld	a, (vfx_idx)	; [mummy-zx A] XOR-враг: в свежую клетку вернуть его пиксели (fb ^= данные)
-	sub	6
-	cp	8
+	call	vxm_isa	; [hero-xor опыт] и герой (слоты 4, 5), кроме финала [end-opaque]
 	jp	c, vfx_xr
 vfx_row:
 	ld	a, (de)	; слот <- свежий fb (fb идём вверх: формат низ-вверх)

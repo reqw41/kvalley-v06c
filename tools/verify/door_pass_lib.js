@@ -5,7 +5,7 @@ const KEY={SPACE:1,LEFT:16,UP:32,DOWN:64,RIGHT:128};
 function boot(rom,sym){
   const E=make(rom,sym);const {L,rd,run,key,memory,v06c,cpu}=E;
   const wr=(a,v)=>memory.write(a&0xffff,v&0xff,false);
-  run(400);key(112,1);key(114,1);for(let i=0;i<640&&rd(L.GameStatus)!==5;i++)run(1);key(112,0);key(114,0);
+  run(400);key(32, 1);for(let i=0;i<640&&rd(L.GameStatus)!==5;i++)run(1);key(32, 0);
   for(let i=0;i<4000&&rd(L.GameStatus)!==5;i++)run(1);
   key(78,1);run(3);key(78,0);
   for(let i=0;i<3000&&!(rd(L.GameStatus)===5&&rd(L.piramideActual)===2);i++)run(1);

@@ -20,6 +20,14 @@ wait5s:
 	ld a, (frames)
 	cp 250	; 5 с по 50 Гц
 	jp c, wait5s
+; Погасить палитру до прыжка в игру: игра до своей чёрной палитры (vec_setpal) уже пишет в экран
+; поверх обложки, и в палитре обложки это виден мусор. Палитру пишет ISR (в гашении), ждём два кадра.
+	ld hl, zero+15
+	ld (palp), hl
+	xor a
+	ld (paldone), a
+	halt
+	halt
 ; вернуть игре её первые 3 байта и стартовать
 	di
 	ld hl, orig3
@@ -52,7 +60,7 @@ isr:	; скролл + палитра один раз, дальше только 
 	jp nz, count
 	ld a, 1
 	ld (paldone), a
-	ld hl, pal+15
+	ld hl, (palp)
 	ld de, 0x100F
 ploop:
 	ld a, e
@@ -85,6 +93,10 @@ pal:
 	incbin "v16_pal.bin"
 orig3:
 	incbin "orig3.bin"
+palp:
+	dw pal+15
+zero:
+	ds 16
 frames:
 	db 0
 paldone:

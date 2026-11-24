@@ -4,8 +4,8 @@
 // node tools/verify/mz_measure.js <rom> <sym> <сценарии...>   -> JSON в stdout
 "use strict";
 const BH = require("./beam_harness.js");
-BH.toGame = function (E) { const { run, key, rd, L } = E; run(400); key(112, 1); key(114, 1);
-  for (let i = 0; i < 640 && rd(L.GameStatus) !== 5; i++) run(1); key(112, 0); key(114, 0);
+BH.toGame = function (E) { const { run, key, rd, L } = E; run(400); key(32, 1);
+  for (let i = 0; i < 640 && rd(L.GameStatus) !== 5; i++) run(1); key(32, 0);
   for (let i = 0; i < 4000 && rd(L.GameStatus) !== 5; i++) run(1); return rd(L.GameStatus); };
 const origMake = BH.make;
 let PACK = null;

@@ -4,8 +4,8 @@
 // node tools/verify/mz_shots.js <rom> <sym> <outdir> <prefix> [сценарии через запятую]
 "use strict";
 const BH = require("./beam_harness.js");
-BH.toGame = function (E) { const { run, key, rd, L } = E; run(400); key(112, 1); key(114, 1);
-  for (let i = 0; i < 640 && rd(L.GameStatus) !== 5; i++) run(1); key(112, 0); key(114, 0);
+BH.toGame = function (E) { const { run, key, rd, L } = E; run(400); key(32, 1);
+  for (let i = 0; i < 640 && rd(L.GameStatus) !== 5; i++) run(1); key(32, 0);
   for (let i = 0; i < 4000 && rd(L.GameStatus) !== 5; i++) run(1); return rd(L.GameStatus); };
 let LAST = null; const om = BH.make; BH.make = function (r, s) { LAST = om(r, s); return LAST; };
 const { runScenario } = require("./lo_lib.js");

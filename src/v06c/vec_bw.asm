@@ -114,22 +114,20 @@ vpz_f2:
 	add	a, 16	; right-half: верхняя четвёрка первой (lo0+12..15; lo0<240 => без переноса)
 	ld	(vpf_dl+1), a
 	ld	a, c
-	add	a, 12
+	add	a, 14	; [flicker-kv2] верхняя пара строк первой
 	ld	(vpf_sl+1), a
 	ld	a, b
 	ld	(vpf_svb+1), a
 	ld	hl, 0
 	add	hl, sp
 	ld	(vpz_sp), hl
-	ld	b, 4
+	ld	b, 8
 vpf_lp:
 vpf_sa:
 	ld	h, 0
 vpf_sl:
 	ld	l, 0
 	ld	sp, hl
-	pop	hl
-	ld	(vpz_th), hl
 	pop	de
 vpf_da:
 	ld	h, 0
@@ -137,15 +135,11 @@ vpf_dl:
 	ld	l, 0
 	ld	sp, hl
 	push	de
-	ld	hl, (vpz_th)
-	push	hl
 vpf_sb:
 	ld	h, 0
 	ld	a, (vpf_sl+1)
 	ld	l, a
 	ld	sp, hl
-	pop	hl
-	ld	(vpz_th), hl
 	pop	de
 vpf_db:
 	ld	h, 0
@@ -153,13 +147,11 @@ vpf_db:
 	ld	l, a
 	ld	sp, hl
 	push	de
-	ld	hl, (vpz_th)
-	push	hl
-	ld	a, (vpf_sl+1)
-	sub	4
+	ld	a, (vpf_sl+1)	; [flicker-kv2] чередование плоскостей по 2 строки (было по 4): окно между A и B вдвое уже
+	sub	2
 	ld	(vpf_sl+1), a
 	ld	a, (vpf_dl+1)
-	sub	4
+	sub	2
 	ld	(vpf_dl+1), a
 	dec	b
 	jp	nz, vpf_lp
@@ -267,4 +259,285 @@ vsu_poll:
 	pop	de
 	pop	bc
 	pop	af
+	ret
+
+;  vsm_pqs / vsm_p1q — в vec_xmum.asm (зазор перед .align vec_rev4) [flicker-kv2]
+
+vpr_or2:
+;  [flicker-kv2] пара при НЕнулевом фоне: столбец пары — обе плоскости ЧЕРЕДУЯСЬ ПО 2 СТРОКИ (как vpz_f2), а не
+;  столбец первой, затем столбец второй (окно между плоскостями байта было ~768 тактов, луч видел промежуточный
+;  цвет — трасса верха поля). Смещения столбца в слотах у обоих одни и те же (условие пары): переключение — XOR
+;  страницы слота (P) и страницы fb (Q), обе разности постоянны по столбцам.
+	ld	a, (vpr_pa)
+	ld	h, a
+	ld	d, a
+	ld	a, (vpr_pb)
+	xor	h
+	ld	(vrw_p1+1), a
+	ld	(vrw_p2+1), a
+	ld	a, (vpr_ha)
+	ld	b, a
+	ld	a, (vpr_hb)
+	xor	b
+	ld	(vrw_q1+1), a
+	ld	(vrw_q2+1), a
+	ld	l, 6	; фон 6+16c, спрайт 0xA0+16c
+	ld	e, 0x0A0
+vpr_c:
+	ld	a, (vsb_lo)
+	ld	c, a
+vrw_r:
+	ld	a, (de)
+	or	(hl)
+	ld	(bc), a
+	inc	l
+	inc	e
+	inc	c
+	ld	a, (de)
+	or	(hl)
+	ld	(bc), a
+	dec	l
+	dec	e
+	dec	c
+	ld	a, h
+vrw_p1:
+	xor	0
+	ld	h, a
+	ld	d, a
+	ld	a, b
+vrw_q1:
+	xor	0
+	ld	b, a
+	ld	a, (de)
+	or	(hl)
+	ld	(bc), a
+	inc	l
+	inc	e
+	inc	c
+	ld	a, (de)
+	or	(hl)
+	ld	(bc), a
+	inc	l
+	inc	e
+	inc	c
+	ld	a, h
+vrw_p2:
+	xor	0
+	ld	h, a
+	ld	d, a
+	ld	a, b
+vrw_q2:
+	xor	0
+	ld	b, a
+	ld	a, l
+	and	0x0F
+	cp	6
+	jp	nz, vrw_r
+	inc	b	; следующий столбец (B снова — страница первого)
+	ld	a, (vsb_nc)
+	dec	a
+	ld	(vsb_nc), a
+	jp	nz, vpr_c
+	ret
+;  ===== [memory-for-speed] ПРЕДСДВИГ МУМИЙ (решение владельца 23.11.2026: место — снятые читы) =====================
+;  Сдвиг кадра мумии (vsp_pat) стоит ~5,1 тыс. тактов на вызов (замер ms_mumshift, 0,94 вызова на шаг). Таблица хранит
+;  уже сдвинутые кадры (формат буфера слота +0xA0: 3 столбца по 16 Б низ-вверх) для сдвигов 2, 4, 6 и шести кадров
+;  (3 кадра x 2 направления): 18 записей по 48 Б. Нечётный сдвиг = чётный + досдвиг всей строки на 1 бит вправо (строка
+;  16 px со сдвигом <= 6 в 24 бита укладывается). Сдвиги 0 и 1 — прежним путём.
+;  ГДЕ ЛЕЖИТ: запись e — страница 0xE6 + e/2, смещение 0x36 + 48*(e&1): у слотов XOR-врагов 6..13 зона +0x36..+0x95
+;  не пишется никогда (замер zcol), у слота 14 (0xEE) страница свободна (ms_ram). Флаг «запись собрана» — 0xEE:0x10+e.
+;  hsClrSU (скрытие спрайтов, смена экрана) обнуляет страницы 0xE0..0xF4 целиком — таблица и флаги гаснут ВМЕСТЕ, и
+;  записи собираются заново при первом использовании (сборка = прежний vsp_pat + копия).
+vsp_patx:
+	ld	hl, (vec_nsp_ptr)
+	inc	hl
+	inc	hl
+	ld	a, (hl)	; pat
+	sub	0x28
+	cp	12
+	jp	c, vpx_m	; прямая мумия: 0..11
+	sub	0x60
+	cp	12
+	jp	nc, vsp_pat	; не мумия
+	add	a, 12	; зеркальная: 12..23
+vpx_m:
+	and	0x1C	; 4*кадр (кадр 0..5)
+	rrca
+	rrca
+	ld	c, a	; C = кадр
+	ld	a, (vsp_sh)
+	cp	2
+	jp	c, vpx_s01	; сдвиг 0/1: копия кадра (+ досдвиг на 1 бит)
+	rrca
+	and	3
+	dec	a	; sh/2-1 = 0..2
+	ld	b, a
+	ld	a, c
+	add	a, a
+	add	a, c	; 3*кадр
+	add	a, b
+	ld	(vpx_e), a	; e = 0..17
+	add	a, 0x10
+	ld	l, a
+	ld	h, 0x0EE
+	ld	a, (hl)
+	or	a
+	jp	nz, vpx_hit
+	ld	(hl), 1	; собираем: прежний vsp_pat с чётным сдвигом, затем копия буфер -> запись
+	ld	a, (vsp_sh)
+	push	af
+	and	6
+	ld	(vsp_sh), a
+	call	vsp_pat
+	pop	af
+	ld	(vsp_sh), a
+	call	vpx_adr	; HL = запись, D = страница слота
+	ex	de, hl	; DE = запись, HL = страница слота
+	ld	l, 0x0A0
+	ex	de, hl	; HL = запись (приёмник), DE = буфер (источник) — копия через SP от DE
+	call	vpx_cp
+	jp	vpx_odd
+vpx_hit:
+	call	vec_su_ptr	; H = страница слота
+	ld	a, h
+	ld	(vsp_pg), a	; её ждут vclp и проверка 3-го столбца (vsp_pat ставит в vsp_mset)
+	call	vpx_adr
+	ld	e, l	; DE = запись (источник)
+	ld	d, h
+	ld	a, (vsp_pg)
+	ld	h, a
+	ld	l, 0x0A0	; HL = буфер (приёмник)
+	call	vpx_cp
+vpx_odd:
+	ld	a, (vsp_sh)
+	rrca
+	ret	nc	; чётный — готово
+	ld	a, (vsp_pg)	; досдвиг на 1 бит: строка = столбцы 0xA0+r, 0xB0+r, 0xC0+r
+	ld	h, a
+	ld	d, a
+	ld	b, a
+	ld	l, 0x0A0
+	ld	e, 0x0B0
+	ld	c, 0x0C0
+vpx_sr:	; [memory-for-speed] по строке за итерацию (было по 4): -36 Б под vxo_lo, +~260 т на нечётный сдвиг
+	or	a	; перенос в первый байт строки = 0
+	ld	a, (hl)
+	rra
+	ld	(hl), a
+	ld	a, (de)
+	rra
+	ld	(de), a
+	ld	a, (bc)
+	rra
+	ld	(bc), a
+	inc	l
+	inc	e
+	inc	c
+	ld	a, l
+	cp	0x0B0
+	jp	nz, vpx_sr
+	ret
+;  vpx_s01, vpx_adr — в vec_xmum.asm (зазор перед .align vec_rev4) [memory-for-speed]
+;  vpx_adr: HL = адрес записи vpx_e, D = страница слота текущего объекта (vec_su_ptr). Клоб A.
+vpx_adr:
+	call	vec_su_ptr
+	ld	d, h
+	ld	a, (vpx_e)
+	rrca
+	ld	l, 0x36
+	jp	nc, vpx_a0
+	ld	l, 0x66
+vpx_a0:
+	and	0x7F
+	add	a, 0x0E6
+	ld	h, a
+	ret
+;  [memory-for-speed] vxo_lo: габарит сдвинулся ТОЛЬКО по строкам (тот же столбец и ширина; замер stress+tour1: 89 %
+;  путей «стереть+вывести»). Раньше — стереть всё старое (vxx_r), потом вывести всё новое (vxw_r): байт, общий для
+;  обоих габаритов, ~3 тыс. тактов стоял пустым, и луч на верхнем этаже ловил это окно (брак «рядом с мумией» зависел
+;  от фазы пачки). Здесь один проход по строкам k: fb[lo0+k] ^= старое[k], fb[lo0'+k] ^= новое[k], старое[k] = новое[k].
+;  Общий байт меняется дважды с промежутком в |lo0'-lo0| итераций (~65 т на строку смещения) — меньше строки луча.
+;  Вход: H = страница слота, шапка валидна, pending=1. Смещение по строкам — операнды vxl_d1/vxl_d2 (код в ОЗУ).
+vxo_lo:
+	ld	l, 3
+	ld	a, (hl)
+	or	a
+	ret	z
+	ld	(vxm_cnt), a
+	ld	l, 0x98
+	ld	a, (hl)	; lo0 нового
+	ld	l, 2
+	ld	e, (hl)	; E = lo0 выведенного
+	ld	(hl), a	; шапка: lo0 = новый (hi0, ncols те же)
+	sub	e	; A = смещение t = lo0' - lo0
+	ld	(vxl_d1+1), a
+	cpl
+	inc	a
+	inc	a	; 1 - t
+	ld	(vxl_d2+1), a
+	dec	l
+	ld	d, (hl)	; D = hi0
+	ld	b, h
+	ld	c, 0x0A0	; BC = новый
+	ld	l, 6	; HL = выведенный
+vxl_r:
+	ld	a, (de)
+	xor	(hl)
+	ld	(de), a	; стереть старую строку k
+	ld	a, e
+vxl_d1:
+	add	a, 0	; ОПЕРАНД: t
+	ld	e, a
+	ld	a, (bc)
+	ld	(hl), a	; выведенный[k] = новый[k]
+	ex	de, hl
+	xor	(hl)
+	ld	(hl), a	; вывести новую строку k
+	ex	de, hl
+	ld	a, e
+vxl_d2:
+	add	a, 0	; ОПЕРАНД: 1 - t -> lo0 + k + 1
+	ld	e, a
+	inc	l
+	inc	c
+	ld	a, c
+	and	0x0F
+	jp	nz, vxl_r
+	ld	a, e
+	sub	16
+	ld	e, a
+	inc	d
+	ld	a, (vxm_cnt)
+	dec	a
+	ld	(vxm_cnt), a
+	jp	nz, vxl_r
+	ret
+;  vpx_cp: 48 Б из (DE) в (HL) POP-хайджеком (DI на время подмены SP; правило vec_saveunder: внутри ни call, ни push).
+;  Обе области внутри одной страницы (запись +0x36..+0x95, буфер +0xA0..+0xCF) — инкремент только младшего байта.
+vpx_cp:
+	di
+	ld	(vpx_t), hl
+	ld	hl, 0
+	add	hl, sp
+	ld	(vpx_sp), hl
+	ex	de, hl
+	ld	sp, hl	; SP = источник
+	ld	hl, (vpx_t)	; HL = приёмник
+	ld	b, 12	; [memory-for-speed] 2 POP за итерацию (было 4): -12 Б под vxo_lo, +~180 т на копию
+vpx_cl:
+	pop	de
+	ld	(hl), e
+	inc	l
+	ld	(hl), d
+	inc	l
+	pop	de
+	ld	(hl), e
+	inc	l
+	ld	(hl), d
+	inc	l
+	dec	b
+	jp	nz, vpx_cl
+	ld	hl, (vpx_sp)
+	ld	sp, hl
+	ei	; как vsu-хайджеки: зовётся только из игрового тика (там EI) — безусловный ei (фикс железа 2026-07-29)
 	ret

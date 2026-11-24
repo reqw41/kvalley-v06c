@@ -107,9 +107,9 @@ function make(romPath,symPath){
 function toGame(E){
   const {run,key,rd,L}=E;
   run(400);
-  key(112,1); key(114,1);                 // F1 + F3
+  key(32, 1);                 // F1 + F3
   for(let i=0;i<40 && rd(L.GameStatus)!==5;i++) run(16);
-  key(112,0); key(114,0); run(8);
+  key(32, 0); run(8);
   if(rd(L.GameStatus)!==5){               // читов нет — стартуем пробелом
     for(let i=0;i<250 && rd(L.GameStatus)!==5;i++){ key(32,1); run(3); key(32,0); run(5); }
     run(8);
@@ -118,4 +118,12 @@ function toGame(E){
   for(let i=0;i<400 && rd(L.GameStatus)!==5;i++) run(4);
   return rd(L.GameStatus);
 }
-module.exports={make,toGame};
+// [memory-for-speed] читы сняты из образа (23.11.2026): «N — следующая пирамида» стенды делают записью в память,
+// ровно как делал vec_hop: дверь-выход в pyramidDoors (4 записи по 7 Б: Y=FF — нет; +5 — пирамида назначения),
+// puertaSalida = бит двери, piramideDest, puertaEntrada = вход пирамиды назначения (таблица бывшего vec_hoptab), GS = 8.
+const HOP_ENT=[0, 4, 4, 1, 8, 8, 4, 4, 1, 8, 8, 4, 4, 4, 1];
+function hopPyr(E,n){const {L,rd}=E;const wr=(a,v)=>E.memory.write(a&0xffff,v&0xff,false);
+  if(rd(L.GameStatus)!==5)return false;const cur=rd(L.piramideActual);const c=Math.min(15,cur+(n||1));if(c===cur)return false;
+  const e=cur+1;let d=1;for(let i=0;i<4;i++,d<<=1){const b=L.pyramidDoors+7*i;if(rd(b)!==0xFF&&rd(b+5)===e){
+    wr(L.puertaSalida,d);wr(L.piramideDest,c);wr(L.puertaEntrada,HOP_ENT[c-1]);wr(L.subStatus,0);wr(L.GameStatus,8);return true;}}return false;}
+module.exports={make,toGame,hopPyr};

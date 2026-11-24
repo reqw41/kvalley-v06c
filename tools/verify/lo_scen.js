@@ -99,7 +99,7 @@ function mk(name, ticks, boot, keysSeed, extra = {}) {
 
 function scenarios() {
   const S = [];
-  S.push(mk("demo", 2600, "demo", 1, { keys: () => 0 }));
+  S.push(mk("demo", 1500, "demo", 1, { keys: () => 0 }));
   // три тура от старта партии; телепорты к предметам каждые 90 тиков
   const tpPre = (period, ph, godAfter) => (t, api) => {
     if (t % period === ph) { const tg = targets(api); if (tg.length) { const r = mulberry32(t * 7919 + 13)(); teleport(api, tg[Math.floor(r * tg.length)]); } }

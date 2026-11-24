@@ -2,8 +2,8 @@
 // node tools/verify/mz_prof.js <rom> <sym> <сценарий> [тиков] -> топ меток (такты/тик)
 "use strict";
 const BH = require("./beam_harness.js");
-BH.toGame = function (E) { const { run, key, rd, L } = E; run(400); key(112, 1); key(114, 1);
-  for (let i = 0; i < 640 && rd(L.GameStatus) !== 5; i++) run(1); key(112, 0); key(114, 0);
+BH.toGame = function (E) { const { run, key, rd, L } = E; run(400); key(32, 1);
+  for (let i = 0; i < 640 && rd(L.GameStatus) !== 5; i++) run(1); key(32, 0);
   for (let i = 0; i < 4000 && rd(L.GameStatus) !== 5; i++) run(1); return rd(L.GameStatus); };
 const origMake = BH.make; const H = { prep: new Float64Array(65536), pack: new Float64Array(65536), L: null };
 BH.make = function (rom, sym) {

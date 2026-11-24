@@ -2,8 +2,8 @@
 // (у lo_gate старт по кадрам, и сборка с другим темпом получает сдвиг тика 0 — ложное расхождение).
 // node tools/verify/lo_align.js tools/verify <a.rom> <a.sym> <b.rom> <b.sym> <сценарии...>
 const TV=process.argv[2];const BH=require(TV+"/beam_harness.js");
-BH.toGame=function(E){const {run,key,rd,L}=E;run(400);key(112,1);key(114,1);
- for(let i=0;i<640&&rd(L.GameStatus)!==5;i++)run(1);key(112,0);key(114,0);
+BH.toGame=function(E){const {run,key,rd,L}=E;run(400);key(32, 1);
+ for(let i=0;i<640&&rd(L.GameStatus)!==5;i++)run(1);key(32, 0);
  for(let i=0;i<4000&&rd(L.GameStatus)!==5;i++)run(1);return rd(L.GameStatus);};
 const {runScenario,diffSnaps}=require(TV+"/lo_lib.js");const {scenarios}=require(TV+"/lo_scen.js");
 const [,, ,ra,sa,rb,sb,...names]=process.argv;

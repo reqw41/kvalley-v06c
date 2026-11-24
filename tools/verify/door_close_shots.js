@@ -43,9 +43,9 @@ function shot(name,extra){
 
 console.log("boot…");
 runf(400);
-key(112,1); key(114,1); // F1+F3 — старт партии с читами
+key(32, 1); // F1+F3 — старт партии с читами
 for(let i=0;i<80 && rd(L.GameStatus)!==4 && rd(L.GameStatus)!==5;i++) runf(8);
-key(112,0); key(114,0);
+key(32, 0);
 console.log("after F1+F3  GS="+rd(L.GameStatus)+" pyr="+rd(L.piramideActual));
 
 // Ждём InitStage (GS=4) или уже геймплей

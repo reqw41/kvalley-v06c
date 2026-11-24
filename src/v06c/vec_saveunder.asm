@@ -345,6 +345,32 @@ vec_scan_keys:
 	in	a, (0x02)
 	in	a, (0x02)
 	cpl
+;  [lives-f13] БЕСКОНЕЧНЫЕ ЖИЗНИ С ТИТУЛА: в том же ряду 1 лежат F1 (бит 3) и F3 (бит 5). На титуле (GameStatus = 1)
+;  F1+F3 -> vec_cheats = 1 и подмешанный SPACE (штатный старт партии); обычный SPACE на титуле -> vec_cheats = 0.
+;  Жизнь возвращает pierdeVida (kvalley_game.asm). vec_god (неуязвимость) — только для стендов.
+	ld	d, a
+	ld	a, (GameStatus)
+	dec	a
+	jp	nz, vsk_g2
+	ld	hl, vec_kb8
+	ld	a, d
+	and	0x28
+	cp	0x28
+	jp	nz, vsk_g1
+	ld	a, (hl)
+	and	0x0FE	; SPACE active-low
+	ld	(hl), a
+	ld	a, 1
+	jp	vsk_gs
+vsk_g1:
+	ld	a, (hl)
+	rrca		; CY = 1: SPACE не нажат
+	jp	c, vsk_g2
+	xor	a
+vsk_gs:
+	ld	(vec_cheats), a
+vsk_g2:
+	ld	a, d
 	and	0x04
 	rlca		; АР2 -> 0x08
 	ld	c, a
@@ -357,7 +383,6 @@ vec_scan_keys:
 	and	0x40
 	or	c
 	ld	(vec_kbs), a
-	call	vec_cheat_scan	; F1+F3 на титуле; игровые читы только при открытом замке
 	ld	a, (vec_vs_cur)	; ПОРТ 3 = ЕЩЁ И HW VSCROLL! текущее положение (лого Konami двигает)
 	out	(0x03), a
 ;  KV_MODE256: PB обратно на ВЫХОД -> mode512=0 driven всю видимую часть кадра (нет полос).

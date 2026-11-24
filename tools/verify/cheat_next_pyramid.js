@@ -160,12 +160,12 @@ const fmt=s=>`GS=${s.GS} sub=${s.sub} wc=${s.wc} pira=${s.pira} dest=${s.dest} `
 //  Что замок закрыт при старте пробелом — проверяет tools/verify/cheat_god_death.js.
 run(400);
 let ok=false;
-key(112,true); key(114,true);            // F1 + F3 держим
+key(32,true);            // F1 + F3 держим
 for(let blk=0; blk<60 && !ok; blk++){
   run(25);
   if(rd(A.GameStatus)===5 && (rd(A.flagPiramideMap)&1)) ok=true;
 }
-key(112,false); key(114,false); run(5);
+key(32,false); run(5);
 if(!ok){ console.log("НЕ УДАЛОСЬ войти в геймплей: "+fmt(snap())); process.exit(2); }
 if(rd(A.vec_cheats)!==1){ console.log(`ЗАМОК ЧИТОВ НЕ ОТКРЫЛСЯ: vec_cheats=${rd(A.vec_cheats)} — читы N/H заведомо мертвы, проверять нечего`); process.exit(2); }
 run(60); // дать герою устояться

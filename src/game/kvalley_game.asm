@@ -334,7 +334,6 @@ TitleScreen:
 		jp	NextGameStatus_
 
 InitTitle:
-		call	vec_cheats_reset
 ;  Общий вход при загрузке, после демо и Game Over. Снять save-under перед
 ;  очисткой обязательно: его старый фон уже не относится к новому экрану.
 		call	vec_su_menu
@@ -566,8 +565,8 @@ tickMuerto:
 		jp	setGameStatus	; Перезапуск игры при смерти в режиме демо
 
 pierdeVida:
-		ld	a, (Vidas)
-		or	a
+		call	vpv_lives	; [lives-f13] A = Vidas (+1 при F1+F3), флаги по A; размер как у `ld a,(Vidas) / or a`
+		nop			; — адреса кода дальше (valoresSalto: указатель на него лежит в ОЗУ) не сдвигаются
 	jp nz,setGameMode
 
 ; Очищает область, где будет выведено сообщение GAME OVER
@@ -2027,7 +2026,6 @@ chkPushAnyKey:
 	jp z,StartGame_0	; Если в меню — начинает партию
 
 		ld	(hl), a		; Ставит статус меню
-		call	vec_cheats_reset
 ;  ЭКРАН СЕЙЧАС БУДЕТ ОЧИЩЕН -> ФОН В СЛОТАХ SAVE-UNDER ПРОТУХ (жалоба «первый джингл
 ;  быстрее второго», 2026-08-12). Гашение гейта vsu_any уехало в vec_su_menu (vec_repair.asm,
 ;  ЗА выравниванием — здесь свободных байт нет, см. комментарий там); вызов бесплатен, это
@@ -2041,7 +2039,6 @@ StartGame_0:
 		ld	a, b
 		and	0x30
 		ret	z		; Не нажат выстрел 1 или 2
-		call	vec_cheats_latch	; F1+F3 открывает читы, обычный старт закрывает
 		ld	hl, controlPlayer ; бит 6 = героем управляет игрок
 	push af	; Ручное управление
 	ld a,(hl)
@@ -5744,7 +5741,9 @@ openCloseExit3:
 openCloseExit4:
 		ld	hl, puertaCerrada ; Равно 1 при закрытии выхода
 		inc	(hl)
-		jp	vec_hero_redraw	; 0x70: тайлы уже лежат, пачка на вложенном ISR не идёт
+		ret			; [hero-xor] было jp vec_hero_redraw (там только ret: пара XOR-путём)
+		nop			; размер прежний — адреса кода дальше (valoresSalto) не сдвигаются
+		nop
 
 openCloseExit5:
 		ld	a, (hl)		; Status
@@ -9703,6 +9702,10 @@ ShowEnding:
 		ld	(keyPressDemo),	hl ; Указатель на записанные команды управления
 		ld	a, 0x44		; 0x88@50 Гц, шаг 1.5 px на 25 Гц — прыжок в центре
 		ld	(KeyHoldCntDemo), a
+;  [ending-fix] ВЫХОД ИЗ ФАЗЫ — НЕ ТРОГАТЬ. В c5a6436 строка ушла вместе с меткой nextSubStatus_ (сочли мёртвой),
+;  и код проваливался в controlsEnding (04 0E 14 FF = inc b / ld c,14h / rst 38h): герой прыгал сразу у двери,
+;  бонус шёл к 120-му тику вместо 220-го. Ловит bonus_ending_gate (финал — записью в память, без чита).
+		jp	NextSubStatus
 
 controlsEnding:	db 4, 0x0E
 		db 0x14,	0x0FF		; Влево, влево+прыжок (0x1B/2)

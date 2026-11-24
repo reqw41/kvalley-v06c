@@ -21,8 +21,8 @@ BH.make = function (...a) {
   return E;
 };
 BH.toGame = function (E) {
-  const { run, key, rd, L } = E; run(400); key(112, 1); key(114, 1);
-  for (let i = 0; i < 640 && rd(L.GameStatus) !== 5; i++) run(1); key(112, 0); key(114, 0);
+  const { run, key, rd, L } = E; run(400); key(32, 1);
+  for (let i = 0; i < 640 && rd(L.GameStatus) !== 5; i++) run(1); key(32, 0);
   for (let i = 0; i < 4000 && rd(L.GameStatus) !== 5; i++) run(1); return rd(L.GameStatus);
 };
 const { runScenario } = require(TV + "/lo_lib.js");
